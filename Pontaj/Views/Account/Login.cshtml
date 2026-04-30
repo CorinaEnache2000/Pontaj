@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Autentificare";
+    ViewData["HideNavbar"] = true;
+    Layout = "_Layout";
+}
+
+<div class="container d-flex justify-content-center align-items-center login-container mt-5">
+    <div class="card login-box shadow-sm" style="width: 22.5rem">
+        <div class="card-body">
+            <div class="text-center mb-3">
+                <img src="~/images/logo-sante.jpg" alt="Clinica Sante" style="height: 3.5rem;" />
+            </div>
+            <h4 class="card-title text-center mb-4">Pontaj</h4>
+
+            <div id="session-expired-alert" class="alert alert-warning d-none" role="alert">
+                Sesiunea a expirat. Vă rugăm să vă autentificați din nou.
+            </div>
+
+            <div id="login-form">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Utilizator</label>
+                    <input type="text" class="form-control" id="username" autocomplete="username" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Parolă</label>
+                    <input type="password" class="form-control" id="password" autocomplete="current-password" />
+                </div>
+
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary" id="login-submit">
+                        <span id="login-spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Conectare
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/account/login.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,8 @@
+﻿@{
+    ViewData["Title"] = "Rapoarte";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Bine ai venit, @(User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name)</h1>
+    <p class="text-muted">Rapoartele sunt disponibile aici.</p>
+</div>

@@ -26,8 +26,29 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Acasă</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Reports" asp-action="Index">Rapoarte</a>
+                            </li>
+
+                            @if (User.IsInRole("ADMINISTRATOR"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Administrare
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item" asp-area="" asp-controller="Admin" asp-action="OrganizationalUnits">Unități organizaționale</a></li>
+                                        <li><a class="dropdown-item" asp-area="" asp-controller="Admin" asp-action="Users">Utilizatori</a></li>
+                                    </ul>
+                                </li>
+                            }
                         </ul>
                     </div>
+
+                    <a class="nav-link text-dark disabled me-5">@User.FindFirst("DisplayName")?.Value</a>
+                    <a id="btn-logout" class="nav-link text-danger fw-bolder" href="Account/Login">
+                        Logout <i class="bi bi-box-arrow-right"></i>
+                    </a>
                 </div>
             </nav>
         </header>
@@ -57,6 +78,12 @@
         </div>
     </div>
 
+   @*  <script>
+        function logoutFix(e) {
+            localStorage.clear();
+            sessionStorage.clear();
+        }
+    </script> *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/api.js" asp-append-version="true"></script>

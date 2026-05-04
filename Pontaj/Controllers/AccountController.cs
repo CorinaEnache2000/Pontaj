@@ -76,6 +76,20 @@ public class AccountController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("logout")]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("sessionToken", new CookieOptions
+        {
+            Path = "/", 
+            HttpOnly = true,
+            Secure = true
+        });
+
+        return Ok(new { success = true });
+    }
+
     [HttpGet("me")]
     public IActionResult Me()
     {

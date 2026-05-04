@@ -106,3 +106,29 @@ function showToast(opType, content) {
         delay: delay
     }).show();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const logoutBtn = document.getElementById('btn-logout');
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            apiRequest({
+                method: 'POST',
+                path: '/api/account/logout',
+                onSuccess: function () {
+
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = '/Account/Login';
+                },
+                onError: function (err) {
+
+                    localStorage.clear();
+                    window.location.href = '/Account/Login';
+                }
+            });
+        });
+    }
+});

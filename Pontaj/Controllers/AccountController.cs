@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontaj.Models;
 using Pontaj.Services.Login;
+using Pontaj.Services.Logs;
 
 namespace Pontaj.Controllers;
 
@@ -16,70 +17,86 @@ public class AccountController : ControllerBase
     private readonly IRoleService _roleService;
     private readonly IUserService _userService;
     private readonly IJwtTokenService _tokenService;
+    private readonly IAppLogger _logger;
 
     public AccountController(
         IActiveDirectoryService adService,
         IRoleService roleService,
         IUserService userService,
-        IJwtTokenService tokenService)
+        IJwtTokenService tokenService,
+        IAppLogger logger)
     {
         _adService = adService;
         _roleService = roleService;
         _userService = userService;
         _tokenService = tokenService;
+        _logger = logger;
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        try
         {
-            return BadRequest(ResponseBase.Error("Utilizatorul și parola sunt obligatorii."));
+            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(ResponseBase.Error("Utilizatorul și parola sunt obligatorii."));
+            }
+
+            if (!_adService.Authenticate(request.Username, request.Password))
+            {
+                await _logger.LogAsync("Login_Failed", $"Tentativă de autentificare eșuată pentru user: {request.Username}");
+                return Unauthorized(ResponseBase.Error("Utilizator sau parolă incorectă."));
+            }
+
+            var adUser = _adService.GetUserInfo(request.Username);
+            if (adUser == null)
+            {
+                return Unauthorized(ResponseBase.Error("Utilizatorul nu a fost găsit în Active Directory."));
+            }
+
+            var adGroups = _adService.GetUserGroups(request.Username);
+            var roles = await _roleService.GetRolesFromADGroupsAsync(adGroups, ct);
+
+            if (roles.Count == 0)
+            {
+                await _logger.LogAsync("Login_Forbidden", $"Utilizatorul {request.Username} nu are grupuri de AD mapate pe roluri.");
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    ResponseBase.Error("Nu aveți drept de acces la această aplicație."));
+            }
+
+            var dbUser = await _userService.GetOrCreateUserAsync(request.Username, ct);
+            await _userService.SyncUserRolesAsync(dbUser.ID, roles, ct);
+
+            var token = _tokenService.CreateToken(dbUser, roles, adUser.DisplayName);
+
+            await _logger.LogAsync("Login_Success", $"Utilizatorul {request.Username} s-a logat.", null, request.Username);
+
+            var response = ResponseBase.Success(new
+            {
+                username = dbUser.Username,
+                displayName = adUser.DisplayName,
+                roles = roles.Select(r => r.Name).ToArray(),
+                expiresAtUtc = token.ExpiresAtUtc
+            });
+            response.Token = token.Token;
+
+            return Ok(response);
         }
-
-        if (!_adService.Authenticate(request.Username, request.Password))
+        catch (Exception ex)
         {
-            return Unauthorized(ResponseBase.Error("Utilizator sau parolă incorectă."));
+            await _logger.LogAsync("Login_Error", $"Eroare critică la login pentru {request.Username}", ex);
+            return StatusCode(500, ResponseBase.Error("Eroare internă de server."));
         }
-
-        var adUser = _adService.GetUserInfo(request.Username);
-        if (adUser == null)
-        {
-            return Unauthorized(ResponseBase.Error("Utilizatorul nu a fost găsit în Active Directory."));
-        }
-
-        var adGroups = _adService.GetUserGroups(request.Username);
-        var roles = await _roleService.GetRolesFromADGroupsAsync(adGroups, ct);
-
-        if (roles.Count == 0)
-        {
-            return StatusCode(
-                StatusCodes.Status403Forbidden,
-                ResponseBase.Error("Nu aveți drept de acces la această aplicație."));
-        }
-
-        var dbUser = await _userService.GetOrCreateUserAsync(request.Username, ct);
-        await _userService.SyncUserRolesAsync(dbUser.ID, roles, ct);
-
-        var token = _tokenService.CreateToken(dbUser, roles, adUser.DisplayName);
-
-        var response = ResponseBase.Success(new
-        {
-            username = dbUser.Username,
-            displayName = adUser.DisplayName,
-            roles = roles.Select(r => r.Name).ToArray(),
-            expiresAtUtc = token.ExpiresAtUtc
-        });
-        response.Token = token.Token;
-
-        return Ok(response);
     }
 
     [HttpPost("logout")]
     [Authorize]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
+        await _logger.LogAsync("Logout", $"Utilizatorul {User.Identity?.Name} s-a delogat.");
         Response.Cookies.Delete("sessionToken", new CookieOptions
         {
             Path = "/", 

@@ -7,6 +7,7 @@ using Pontaj.Database.Pontaj;
 using Pontaj.Filters;
 using Pontaj.Repositories;
 using Pontaj.Services.Login;
+using Pontaj.Services.Logs;
 
 [assembly: SupportedOSPlatform("windows")]
 
@@ -23,6 +24,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUserXUserRoleRepository, UserXUserRoleRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAppLogger, AppLogger>();
 
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();

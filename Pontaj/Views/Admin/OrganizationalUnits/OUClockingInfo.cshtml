@@ -1,0 +1,35 @@
+﻿@if (Model != null)
+{
+    <div class="table-responsive mt-2">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Marca angajat</th>
+                    <th scope="col">Nume</th>
+                    <th scope="col">Prenume</th>
+                    <th scope="col">De la</th>
+                    <th scope="col">Pana la</th>
+                    <th scope="col">Acțiuni</th>
+                </tr>
+            </thead>
+            @* <tbody>
+                <tr>
+                    <td>@Model.SaleAgentId</td>
+                    <td>@Model.ExternalSaleAgentId</td>
+                    <td>@Model.SaleAgentCd</td>
+                    <td>@Model.SaleAgentName</td>
+                    <td>@Model.NoOfDoc</td>
+                    <td>@Model.NoOfDocWithPartner</td>
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                        @(Model.Active ? "DA" : "NU")
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody> *@
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-muted fst-italic mt-3">Nu există niciun pontaj pentru aceasta unitate.</p>
+}

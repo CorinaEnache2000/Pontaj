@@ -1,8 +1,8 @@
-using Pontaj.Database.Pontaj;
+﻿using Pontaj.Database.Pontaj;
 
 namespace Pontaj.Services.Login;
 
 public interface IRoleService
 {
-    Task<List<UserRole>> GetRolesFromADGroupsAsync(IEnumerable<string> adGroups, CancellationToken ct = default);
+    Task<List<Roles>> GetRolesFromADGroupsAsync(IEnumerable<string> adGroups, CancellationToken ct = default);
 }

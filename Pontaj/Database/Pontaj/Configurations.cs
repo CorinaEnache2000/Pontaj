@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Pontaj.Database.Pontaj;
 
-public partial class Configuration
+public partial class Configurations
 {
     public int Id { get; set; }
 

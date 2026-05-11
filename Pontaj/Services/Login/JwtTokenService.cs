@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -15,12 +15,12 @@ public class JwtTokenService : IJwtTokenService
         _options = options;
     }
 
-    public JwtTokenResult CreateToken(AppUser user, IEnumerable<UserRole> roles, string? displayName)
+    public JwtTokenResult CreateToken(AppUsers user, IEnumerable<Roles> roles, string? displayName)
     {
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.ID.ToString()),
-            new(ClaimTypes.NameIdentifier, user.ID.ToString()),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Username),
             new("DisplayName", displayName ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())

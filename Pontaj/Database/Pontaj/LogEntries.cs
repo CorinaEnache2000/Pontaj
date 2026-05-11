@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Pontaj.Database.Pontaj;
 
-public partial class LogEntry
+public partial class LogEntries
 {
     public int Id { get; set; }
 

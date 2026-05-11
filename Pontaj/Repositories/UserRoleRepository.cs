@@ -12,14 +12,16 @@ public class UserRoleRepository : IUserRoleRepository
         _context = context;
     }
 
-    public async Task<List<UserRole>> GetActiveByADGroupNamesAsync(IEnumerable<string> adGroupNames, CancellationToken ct = default)
-    {
-        var groupSet = adGroupNames.ToList();
-        return await _context.UserRoles
-            .Where(r => r.Active && r.ADGroupName != null && groupSet.Contains(r.ADGroupName))
+    public Task<List<UserRoles>> GetActiveByUserIdAsync(int userId, CancellationToken ct = default) =>
+        _context.UserRoles
+            .Where(x => x.UserId == userId && x.Active)
             .ToListAsync(ct);
+
+    public async Task AddAsync(UserRoles link, CancellationToken ct = default)
+    {
+        await _context.UserRoles.AddAsync(link, ct);
     }
 
-    public Task<UserRole?> GetByIdAsync(int id, CancellationToken ct = default) =>
-        _context.UserRoles.FirstOrDefaultAsync(r => r.Id == id, ct);
+    public Task SaveChangesAsync(CancellationToken ct = default) =>
+        _context.SaveChangesAsync(ct);
 }

@@ -1,4 +1,4 @@
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -21,8 +21,8 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddDbContext<PontajContext>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-builder.Services.AddScoped<IUserXUserRoleRepository, UserXUserRoleRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 
 builder.Services.AddHttpContextAccessor();

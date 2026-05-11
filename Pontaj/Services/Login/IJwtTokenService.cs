@@ -1,11 +1,11 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Pontaj.Database.Pontaj;
 
 namespace Pontaj.Services.Login;
 
 public interface IJwtTokenService
 {
-    JwtTokenResult CreateToken(AppUser user, IEnumerable<UserRole> roles, string? displayName);
+    JwtTokenResult CreateToken(AppUsers user, IEnumerable<Roles> roles, string? displayName);
     JwtTokenResult CreateTokenFromPrincipal(ClaimsPrincipal principal);
 }
 

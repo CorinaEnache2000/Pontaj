@@ -21,7 +21,7 @@ Pontaj/
     HomeController.cs             [Authorize(JwtCookie)] — landing page
   Database/Pontaj/                EF-scaffolded; PontajContext has connection string in OnConfiguring (no password)
     PontajContext.cs              partial class — re-apply OnConfiguring cleanup after every scaffold
-    AppUser.cs / UserRole.cs / UserXUserRole.cs / LogEntry.cs / Configuration.cs
+    AppUsers.cs / Roles.cs / UserRoles.cs / LogEntries.cs / Configurations.cs / etc. (22 entities total — see Database section)
   Repositories/                   Per-aggregate, interface-backed (IUserRepository etc.); writes deferred, caller invokes SaveChangesAsync
   Services/Login/
     ActiveDirectoryService.cs     LDAP bind for credential validation; DirectorySearcher for memberOf
@@ -47,7 +47,9 @@ Pontaj/
 
 `Pontaj` on `DB01\SQL01` — connection string lives in `PontajContext.OnConfiguring` and is intentionally checked into source (no password — Integrated Security).
 
-**Tables**: `AppUser`, `UserRole`, `UserXUserRole`, `LogEntries`, `Configuration`.
+**Tables** (all English, pluralized): `AppUsers`, `Roles`, `UserRoles` (join), `LogEntries`, `Configurations`, plus the domain tables `Addresses`, `Countries`, `Counties`, `Localities`, `Streets`, `StreetTypes`, `UATs`, `UATTypes`, `Zones`, `Employees`, `WorkStations`, `Punches`, `OrganizationalUnits`, `OrganizationalUnitTypes`, `UserOrganizationalUnits`, `Languages`, `TextResources`.
+
+**Foreign-key column convention**: `<ParentEntity>Id` (e.g. `CountryId`, `EmployeeId`, `OrganizationalUnitId`). EF-canonical, no `Id_<X>` underscore form.
 
 **`Configuration`** rows (key/value):
 - `Jwt:SigningKey` — HS256 symmetric key (rotate by updating; needs process restart)
@@ -60,6 +62,14 @@ dotnet ef dbcontext scaffold "Server=DB01\SQL01;Database=Pontaj;Integrated Secur
 ```
 Then re-apply the `OnConfiguring` cleanup (drop `#warning`, wrap in `if (!optionsBuilder.IsConfigured)`).
 
+**Entity naming — use table names verbatim.** EF Core's scaffold pluralizer is wrong for this codebase: it invents fake words (`Strada` → `Stradum`) and singularizes plural English tables (`AppUsers` → `AppUser`). After every re-scaffold, rename any mangled entity files + class declarations + every type reference back to the literal table name.
+
+**Naming scope:**
+- **Entity classes** and **`DbSet<>` properties** — must match the SQL table name **exactly**. No exceptions. EF then infers table mapping with no `ToTable(...)` needed.
+- **Navigation collection properties** — default to the table name (`ICollection<Counties> Counties`); custom names are allowed when they convey semantic meaning (e.g. `InverseParentOrganizationalUnit` for the inverse side of a self-FK).
+- **Single navigation properties** — natural English singular (`Country`, `Employee`, `User`), not the plural class name. The type stays plural (matching the class), the property name conveys "one of these".
+- **Repository and service classes** — standard C# `<Entity>Repository` / `<Entity>Service` singular convention (`UserRepository`, `RoleService`). The rule does not apply to these.
+
 ## Authentication flow
 
 1. Browser hits `/` → `HomeController` requires `JwtCookie` scheme → reads `sessionToken` cookie → fails → `OnChallenge` redirects to `/Account/Login`.
@@ -69,7 +79,7 @@ Then re-apply the `OnConfiguring` cleanup (drop `#warning`, wrap in `if (!option
 5. `JwtRefreshFilter` runs on every authorized action returning `ResponseBase`; re-issues a JWT when `exp - now < TokenLifetime * RefreshThresholdPercent / 100` and slots it into `response.Token`. Same JS path picks it up and refreshes both stores.
 6. On 401 with a Bearer attached, **or** on `apiRequest`'s pre-flight `isJwtExpired`, JS clears localStorage + cookie, sets `sessionStorage["isSessionExpired"] = '1'`, redirects to `/Account/Login`. The login page calls `consumeSessionExpiredFlag()` and shows a solid (non-toast) yellow alert.
 
-**AD groups → roles** (in `dbo.UserRole`):
+**AD groups → roles** (in `dbo.Roles`, matched via `AdGroupName` column):
 - `G_Pontaj_Admin` → `ADMINISTRATOR`
 - `G_Pontaj_Director` → `DIRECTOR`
 - `G_Pontaj_Utilizator` → `UTILIZATOR`

@@ -5,13 +5,13 @@ namespace Pontaj.Services.Login;
 
 public class RoleService : IRoleService
 {
-    private readonly IUserRoleRepository _roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public RoleService(IUserRoleRepository roleRepository)
+    public RoleService(IRoleRepository roleRepository)
     {
         _roleRepository = roleRepository;
     }
 
-    public Task<List<UserRole>> GetRolesFromADGroupsAsync(IEnumerable<string> adGroups, CancellationToken ct = default) =>
+    public Task<List<Roles>> GetRolesFromADGroupsAsync(IEnumerable<string> adGroups, CancellationToken ct = default) =>
         _roleRepository.GetActiveByADGroupNamesAsync(adGroups, ct);
 }

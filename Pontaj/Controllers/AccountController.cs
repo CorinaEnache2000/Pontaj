@@ -1,4 +1,4 @@
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontaj.Models;
@@ -68,7 +68,7 @@ public class AccountController : ControllerBase
             }
 
             var dbUser = await _userService.GetOrCreateUserAsync(request.Username, ct);
-            await _userService.SyncUserRolesAsync(dbUser.ID, roles, ct);
+            await _userService.SyncUserRolesAsync(dbUser.Id, roles, ct);
 
             var token = _tokenService.CreateToken(dbUser, roles, adUser.DisplayName);
 

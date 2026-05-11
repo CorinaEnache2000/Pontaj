@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pontaj.Database.Pontaj;
 
 namespace Pontaj.Repositories;
@@ -12,13 +12,13 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public Task<AppUser?> GetByUsernameAsync(string username, CancellationToken ct = default) =>
+    public Task<AppUsers?> GetByUsernameAsync(string username, CancellationToken ct = default) =>
         _context.AppUsers.FirstOrDefaultAsync(u => u.Username == username, ct);
 
-    public Task<AppUser?> GetByIdAsync(int id, CancellationToken ct = default) =>
-        _context.AppUsers.FirstOrDefaultAsync(u => u.ID == id, ct);
+    public Task<AppUsers?> GetByIdAsync(int id, CancellationToken ct = default) =>
+        _context.AppUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
 
-    public async Task AddAsync(AppUser user, CancellationToken ct = default)
+    public async Task AddAsync(AppUsers user, CancellationToken ct = default)
     {
         await _context.AppUsers.AddAsync(user, ct);
     }

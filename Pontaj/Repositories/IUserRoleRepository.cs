@@ -4,6 +4,7 @@ namespace Pontaj.Repositories;
 
 public interface IUserRoleRepository
 {
-    Task<List<UserRole>> GetActiveByADGroupNamesAsync(IEnumerable<string> adGroupNames, CancellationToken ct = default);
-    Task<UserRole?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<List<UserRoles>> GetActiveByUserIdAsync(int userId, CancellationToken ct = default);
+    Task AddAsync(UserRoles link, CancellationToken ct = default);
+    Task SaveChangesAsync(CancellationToken ct = default);
 }

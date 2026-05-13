@@ -1,13 +1,17 @@
 ﻿using System.Runtime.Versioning;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Pontaj.Database.Pontaj;
 using Pontaj.Filters;
+using Pontaj.Models;
 using Pontaj.Repositories;
 using Pontaj.Services.Login;
 using Pontaj.Services.Logs;
+using Pontaj.Services.Scan;
 
 [assembly: SupportedOSPlatform("windows")]
 
@@ -18,12 +22,68 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<JwtRefreshFilter>();
 });
 
+// Replace the default [ApiController] ProblemDetails response on model-binding failures
+// (malformed JSON, missing required fields, etc.) with our ResponseBase envelope, so the
+// 400 shape is consistent with every other JSON response in the app.
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(kv => kv.Value?.Errors.Count > 0)
+            .SelectMany(kv => kv.Value!.Errors.Select(e => e.ErrorMessage))
+            .Where(m => !string.IsNullOrWhiteSpace(m))
+            .ToArray();
+
+        var reason = errors.Length > 0
+            ? string.Join(" ", errors)
+            : "Cerere invalidă.";
+
+        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(ResponseBase.Error(reason));
+    };
+});
+
 builder.Services.AddDbContext<PontajContext>();
+// Separate factory for AppLogger so log writes (often in catch blocks) don't
+// share the request DbContext, which may be in a faulted state after a failed save.
+// Lifetime must be Scoped to match the DbContextOptions registered by AddDbContext above
+// — a Singleton factory can't consume the Scoped DbContextOptions (DI validator rejects).
+// The factory is stateless; per-request allocation is negligible. Each CreateDbContext call
+// still produces a fresh isolated context.
+builder.Services.AddDbContextFactory<PontajContext>(lifetime: ServiceLifetime.Scoped);
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IWorkStationRepository, WorkStationRepository>();
+builder.Services.AddScoped<IPunchRepository, PunchRepository>();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, ct) =>
+    {
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsJsonAsync(
+            ResponseBase.Error("Prea multe scanări într-un interval scurt. Reîncercați."),
+            cancellationToken: ct);
+    };
+
+    // Per-IP fixed window for the anonymous scan endpoint.
+    // 60/min comfortably covers shift-change bursts while blocking abuse loops.
+    options.AddPolicy("scan", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAppLogger, AppLogger>();
@@ -38,9 +98,26 @@ builder.Services.AddSingleton<IActiveDirectoryService>(
 string jwtSigningKey;
 TimeSpan jwtLifetime;
 int jwtRefreshThresholdPercent;
+int scanLockTimeoutMs = ScanSettings.DefaultLockTimeoutMs;
 using (var bootstrapContext = new PontajContext())
 {
     var configRepo = new ConfigurationRepository(bootstrapContext);
+
+    // Scan lock timeout: best-effort load — fall back to the compile-time default on any
+    // failure (row missing, unparseable value, transient DB hiccup). The scan endpoint
+    // must remain functional even if this row is absent.
+    try
+    {
+        var scanLockRaw = configRepo.GetValue(ScanSettings.LockTimeoutMsConfigName);
+        if (int.TryParse(scanLockRaw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsedScanLock) && parsedScanLock > 0)
+        {
+            scanLockTimeoutMs = parsedScanLock;
+        }
+    }
+    catch
+    {
+        // Keep the default; do not block startup.
+    }
 
     jwtSigningKey = configRepo.GetValue(JwtSettings.SigningKeyConfigName)
         ?? throw new InvalidOperationException(
@@ -69,6 +146,7 @@ using (var bootstrapContext = new PontajContext())
     }
 }
 builder.Services.AddSingleton(new JwtRuntimeOptions(jwtSigningKey, jwtLifetime, jwtRefreshThresholdPercent));
+builder.Services.AddSingleton(new ScanRuntimeOptions(scanLockTimeoutMs));
 
 var tokenValidationParameters = new TokenValidationParameters
 {
@@ -145,6 +223,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

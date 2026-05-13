@@ -240,7 +240,11 @@ public partial class PontajContext : DbContext
 
         modelBuilder.Entity<Punches>(entity =>
         {
+            entity.HasIndex(e => new { e.EmployeeId, e.InsertedDate }, "IX_Punches_EmployeeId_InsertedDate")
+                .IsDescending(false, true);
+
             entity.Property(e => e.Badge).HasMaxLength(60);
+            entity.Property(e => e.Ip).HasMaxLength(50);
             entity.Property(e => e.InsertedDate).HasDefaultValueSql("(CONVERT([date],getdate()))");
             entity.Property(e => e.InsertedMoment).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.InsertedTime).HasDefaultValueSql("(CONVERT([time],getdate()))");
@@ -252,12 +256,10 @@ public partial class PontajContext : DbContext
 
             entity.HasOne(d => d.OrganizationalUnit).WithMany(p => p.Punches)
                 .HasForeignKey(d => d.OrganizationalUnitId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Punches_OrganizationalUnits");
 
             entity.HasOne(d => d.WorkStation).WithMany(p => p.Punches)
                 .HasForeignKey(d => d.WorkStationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Punches_WorkStations");
         });
 
@@ -366,6 +368,10 @@ public partial class PontajContext : DbContext
 
         modelBuilder.Entity<WorkStations>(entity =>
         {
+            entity.HasIndex(e => e.Ip, "UX_WorkStations_Ip")
+                .IsUnique()
+                .HasFilter("([Ip] IS NOT NULL)");
+
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Ip).HasMaxLength(50);
             entity.Property(e => e.NameKey).HasMaxLength(100);

@@ -46,7 +46,7 @@ public class AccountController : ControllerBase
 
             if (!_adService.Authenticate(request.Username, request.Password))
             {
-                await _logger.LogAsync("Login_Failed", $"Tentativă de autentificare eșuată pentru user: {request.Username}");
+                await TryLogAsync("Login_Failed", $"Tentativă de autentificare eșuată pentru user: {request.Username}");
                 return Unauthorized(ResponseBase.Error("Utilizator sau parolă incorectă."));
             }
 
@@ -61,7 +61,7 @@ public class AccountController : ControllerBase
 
             if (roles.Count == 0)
             {
-                await _logger.LogAsync("Login_Forbidden", $"Utilizatorul {request.Username} nu are grupuri de AD mapate pe roluri.");
+                await TryLogAsync("Login_Forbidden", $"Utilizatorul {request.Username} nu are grupuri de AD mapate pe roluri.");
                 return StatusCode(
                     StatusCodes.Status403Forbidden,
                     ResponseBase.Error("Nu aveți drept de acces la această aplicație."));
@@ -72,7 +72,7 @@ public class AccountController : ControllerBase
 
             var token = _tokenService.CreateToken(dbUser, roles, adUser.DisplayName);
 
-            await _logger.LogAsync("Login_Success", $"Utilizatorul {request.Username} s-a logat.", null, request.Username);
+            await TryLogAsync("Login_Success", $"Utilizatorul {request.Username} s-a logat.", null, request.Username);
 
             var response = ResponseBase.Success(new
             {
@@ -87,7 +87,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            await _logger.LogAsync("Login_Error", $"Eroare critică la login pentru {request.Username}", ex);
+            await TryLogAsync("Login_Error", $"Eroare critică la login pentru {request.Username}", ex);
             return StatusCode(500, ResponseBase.Error("Eroare internă de server."));
         }
     }
@@ -99,8 +99,22 @@ public class AccountController : ControllerBase
         // Logout is a pure client-side operation (JS clears the cookie + localStorage).
         // This endpoint exists only to record the event in LogEntries; the JS calls it
         // fire-and-forget and does not wait for a response.
-        await _logger.LogAsync("Logout", $"Utilizatorul {User.Identity?.Name} s-a delogat.");
+        await TryLogAsync("Logout", $"Utilizatorul {User.Identity?.Name} s-a delogat.");
         return Ok(new { success = true });
+    }
+
+    // Swallow secondary failures so a logger glitch can never turn a clean response into
+    // a generic 500. Missing one log row is preferable to misleading the client.
+    private async Task TryLogAsync(string action, string message, Exception? ex = null, string? username = null)
+    {
+        try
+        {
+            await _logger.LogAsync(action, message, ex, username);
+        }
+        catch
+        {
+            // Intentionally swallowed.
+        }
     }
 
     [HttpGet("me")]

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Pontaj.Database.Pontaj;
@@ -7,9 +7,9 @@ public partial class Punches
 {
     public long Id { get; set; }
 
-    public int WorkStationId { get; set; }
+    public int? WorkStationId { get; set; }
 
-    public int OrganizationalUnitId { get; set; }
+    public int? OrganizationalUnitId { get; set; }
 
     public int EmployeeId { get; set; }
 
@@ -23,9 +23,11 @@ public partial class Punches
 
     public DateTime InsertedMoment { get; set; }
 
+    public string? Ip { get; set; }
+
     public virtual Employees Employee { get; set; } = null!;
 
-    public virtual OrganizationalUnits OrganizationalUnit { get; set; } = null!;
+    public virtual OrganizationalUnits? OrganizationalUnit { get; set; }
 
-    public virtual WorkStations WorkStation { get; set; } = null!;
+    public virtual WorkStations? WorkStation { get; set; }
 }

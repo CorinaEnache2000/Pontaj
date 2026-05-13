@@ -33,7 +33,7 @@ public partial class OrganizationalUnits
 
     public virtual ICollection<Punches> Punches { get; set; } = new List<Punches>();
 
-    public virtual ICollection<UserOrganizationalUnits> UserOrganizationalUnits { get; set; } = new List<UserOrganizationalUnits>();
+    public virtual ICollection<EmployeeOrganizationalUnits> EmployeeOrganizationalUnits { get; set; } = new List<EmployeeOrganizationalUnits>();
 
     public virtual ICollection<WorkStations> WorkStations { get; set; } = new List<WorkStations>();
 }

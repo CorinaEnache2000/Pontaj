@@ -114,21 +114,18 @@ document.addEventListener('DOMContentLoaded', function () {
         logoutBtn.addEventListener('click', function (e) {
             e.preventDefault();
 
+            // Fire-and-forget audit log — JS owns the cookie + localStorage, so the
+            // client-side teardown below is what actually logs the user out. The server
+            // POST is just so the Logout row lands in LogEntries; we don't wait for it.
             apiRequest({
                 method: 'POST',
-                path: '/api/account/logout',
-                onSuccess: function () {
-
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = '/Account/Login';
-                },
-                onError: function (err) {
-
-                    localStorage.clear();
-                    window.location.href = '/Account/Login';
-                }
+                path: '/api/account/logout'
             });
+
+            clearSessionToken();
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/Account/Login';
         });
     }
 });

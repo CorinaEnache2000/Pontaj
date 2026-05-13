@@ -96,14 +96,10 @@ public class AccountController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout()
     {
+        // Logout is a pure client-side operation (JS clears the cookie + localStorage).
+        // This endpoint exists only to record the event in LogEntries; the JS calls it
+        // fire-and-forget and does not wait for a response.
         await _logger.LogAsync("Logout", $"Utilizatorul {User.Identity?.Name} s-a delogat.");
-        Response.Cookies.Delete("sessionToken", new CookieOptions
-        {
-            Path = "/", 
-            HttpOnly = true,
-            Secure = true
-        });
-
         return Ok(new { success = true });
     }
 

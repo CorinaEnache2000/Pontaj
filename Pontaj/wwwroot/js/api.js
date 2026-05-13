@@ -143,7 +143,18 @@ function apiRequest({
         dispatchError({ status: 0, message: 'Eroare de rețea.' }, onError);
     };
 
-    xhr.send(payload);
+    xhr.onabort = function () {
+        dispatchError({ status: 0, message: 'Cererea a fost anulată.' }, onError);
+    };
+
+    try {
+        xhr.send(payload);
+    } catch (err) {
+        // xhr.send can throw synchronously when the URL/state is rejected before the
+        // request leaves the browser (rare, but leaves the caller hanging if uncaught).
+        dispatchError({ status: 0, message: 'Eroare la trimiterea cererii.' }, onError);
+        return null;
+    }
     return xhr;
 }
 

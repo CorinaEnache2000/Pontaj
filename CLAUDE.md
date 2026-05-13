@@ -47,7 +47,7 @@ Pontaj/
 
 `Pontaj` on `DB01\SQL01` — connection string lives in `PontajContext.OnConfiguring` and is intentionally checked into source (no password — Integrated Security).
 
-**Tables** (all English, pluralized): `AppUsers`, `Roles`, `UserRoles` (join), `LogEntries`, `Configurations`, plus the domain tables `Addresses`, `Countries`, `Counties`, `Localities`, `Streets`, `StreetTypes`, `UATs`, `UATTypes`, `Zones`, `Employees`, `WorkStations`, `Punches`, `OrganizationalUnits`, `OrganizationalUnitTypes`, `UserOrganizationalUnits`, `Languages`, `TextResources`.
+**Tables** (all English, pluralized): `AppUsers`, `Roles`, `UserRoles` (join), `LogEntries`, `Configurations`, plus the domain tables `Addresses`, `Countries`, `Counties`, `Localities`, `Streets`, `StreetTypes`, `UATs`, `UATTypes`, `Zones`, `Employees`, `WorkStations`, `Punches`, `OrganizationalUnits`, `OrganizationalUnitTypes`, `EmployeeOrganizationalUnits` (join), `Languages`, `TextResources`.
 
 **Foreign-key column convention**: `<ParentEntity>Id` (e.g. `CountryId`, `EmployeeId`, `OrganizationalUnitId`). EF-canonical, no `Id_<X>` underscore form.
 
@@ -141,3 +141,7 @@ dotnet run --project Pontaj
 - **Sliding refresh runs on every authorized action returning `ResponseBase`.** Stateless JWT — no revocation list. Rotating keys invalidates all in-flight tokens, requires process restart.
 - **`AccountController` (API) and `AccountViewsController` (Razor)** are split because mixing `[ApiController]` and view-returning actions on the same class is awkward.
 - **Footer is themed Clinica Sante** (logo at right). Login page hides the navbar via `ViewData["HideNavbar"] = true` but keeps the footer.
+
+## Git conventions
+
+- **Never add Claude as a co-author on commits.** No `Co-Authored-By: Claude ...` trailer, no `🤖 Generated with Claude Code` line, no equivalent attribution. Commits are authored by the user alone.

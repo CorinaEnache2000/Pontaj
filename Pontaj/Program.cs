@@ -107,7 +107,22 @@ builder.Services
             OnChallenge = ctx =>
             {
                 ctx.HandleResponse();
-                ctx.Response.Redirect("/Account/Login");
+
+                // OnChallenge only fires on protected (JwtCookie) routes, so reaching here
+                // always means the user was redirected from a protected page — show the
+                // "session expired / please log in" alert in either case. Clear any stale
+                // session cookie too so the browser stops sending it.
+                if (ctx.Request.Cookies.ContainsKey(AuthSchemes.SessionCookieName))
+                {
+                    ctx.Response.Cookies.Delete(AuthSchemes.SessionCookieName, new CookieOptions
+                    {
+                        Path = "/",
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                }
+
+                ctx.Response.Redirect("/Account/Login?expired=1");
                 return Task.CompletedTask;
             }
         };

@@ -1,8 +1,22 @@
 // Page script for Views/Account/Login.cshtml.
 // JS-driven validation + submit (no <form>, no default browser handling).
 
-if (consumeSessionExpiredFlag()) {
+// Show "session expired" alert when either:
+//   - the JS-side handleSessionExpired set the sessionStorage flag (API 401 / pre-flight),
+//   - or the server-side JwtCookie OnChallenge redirected here with ?expired=1
+//     (the user navigated/refreshed with an expired cookie — JS never got involved).
+const loginParams = new URLSearchParams(window.location.search);
+const expiredFromQuery = loginParams.get('expired') === '1';
+
+if (consumeSessionExpiredFlag() || expiredFromQuery) {
     document.getElementById('session-expired-alert').classList.remove('d-none');
+}
+
+if (expiredFromQuery) {
+    loginParams.delete('expired');
+    const newSearch = loginParams.toString();
+    const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+    window.history.replaceState({}, document.title, newUrl);
 }
 
 const usernameInput = document.getElementById('username');

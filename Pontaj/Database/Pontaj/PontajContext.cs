@@ -51,7 +51,7 @@ public partial class PontajContext : DbContext
 
     public virtual DbSet<UATTypes> UATTypes { get; set; }
 
-    public virtual DbSet<UserOrganizationalUnits> UserOrganizationalUnits { get; set; }
+    public virtual DbSet<EmployeeOrganizationalUnits> EmployeeOrganizationalUnits { get; set; }
 
     public virtual DbSet<UserRoles> UserRoles { get; set; }
 
@@ -112,6 +112,10 @@ public partial class PontajContext : DbContext
         {
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Username).HasMaxLength(200);
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.AppUsers)
+                .HasForeignKey(d => d.EmployeeId)
+                .HasConstraintName("FK_AppUsers_Employees");
         });
 
         modelBuilder.Entity<Configurations>(entity =>
@@ -158,6 +162,7 @@ public partial class PontajContext : DbContext
 
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Badge).HasMaxLength(60);
+            entity.Property(e => e.Code).HasMaxLength(60);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Pin).HasMaxLength(60);
@@ -329,17 +334,19 @@ public partial class PontajContext : DbContext
                 .IsFixedLength();
         });
 
-        modelBuilder.Entity<UserOrganizationalUnits>(entity =>
+        modelBuilder.Entity<EmployeeOrganizationalUnits>(entity =>
         {
-            entity.HasOne(d => d.OrganizationalUnit).WithMany(p => p.UserOrganizationalUnits)
+            entity.Property(e => e.Active).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeOrganizationalUnits)
+                .HasForeignKey(d => d.EmployeeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EmployeeOrganizationalUnits_Employees");
+
+            entity.HasOne(d => d.OrganizationalUnit).WithMany(p => p.EmployeeOrganizationalUnits)
                 .HasForeignKey(d => d.OrganizationalUnitId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserOrganizationalUnits_OrganizationalUnits");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserOrganizationalUnits)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserOrganizationalUnits_AppUsers");
+                .HasConstraintName("FK_EmployeeOrganizationalUnits_OrganizationalUnits");
         });
 
         modelBuilder.Entity<UserRoles>(entity =>

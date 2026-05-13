@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Pontaj.Database.Pontaj;
@@ -18,6 +18,12 @@ public partial class Employees
     public string? Badge { get; set; }
 
     public bool Active { get; set; }
+
+    public string? Code { get; set; }
+
+    public virtual ICollection<AppUsers> AppUsers { get; set; } = new List<AppUsers>();
+
+    public virtual ICollection<EmployeeOrganizationalUnits> EmployeeOrganizationalUnits { get; set; } = new List<EmployeeOrganizationalUnits>();
 
     public virtual ICollection<Punches> Punches { get; set; } = new List<Punches>();
 }

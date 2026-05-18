@@ -39,6 +39,7 @@ public class ScanController : ControllerBase
     {
         var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var badge = request?.Badge?.Trim();
+        var hostname = request?.Hostname?.Trim();
 
         try
         {
@@ -52,21 +53,32 @@ public class ScanController : ControllerBase
             {
                 await TryLogAsync(
                     "Scan_UnknownBadge",
-                    $"Card necunoscut '{badge}' de la IP {remoteIp ?? "(necunoscut)"}.",
+                    $"Card necunoscut '{badge}' de la IP {remoteIp ?? "(necunoscut)"}, host {hostname ?? "(necunoscut)"}.",
                     null,
                     $"scan@{remoteIp ?? "unknown"}");
                 return NotFound(ResponseBase.Error("Card necunoscut. Acces refuzat."));
             }
 
+            // Resolve workstation: prefer hostname, fall back to IP.
             WorkStations? workStation = null;
-            if (!string.IsNullOrEmpty(remoteIp))
+            int? employeeOuId = await _employees.GetPrimaryActiveOrganizationalUnitIdAsync(employee.Id, ct);
+
+            if (!string.IsNullOrWhiteSpace(hostname) && employeeOuId.HasValue)
+            {
+                workStation = await _workStations.GetOrCreateByHostnameAsync(
+                    hostname, remoteIp, employeeOuId.Value, ct);
+            }
+            else if (!string.IsNullOrWhiteSpace(hostname))
+            {
+                workStation = await _workStations.GetActiveByHostnameAsync(hostname, ct);
+            }
+
+            if (workStation == null && !string.IsNullOrEmpty(remoteIp))
             {
                 workStation = await _workStations.GetActiveByIpAsync(remoteIp, ct);
             }
 
-            // OU resolution: workstation first, then employee's primary active OU, else NULL.
-            int? organizationalUnitId = workStation?.OrganizationalUnitId
-                ?? await _employees.GetPrimaryActiveOrganizationalUnitIdAsync(employee.Id, ct);
+            int? organizationalUnitId = workStation?.OrganizationalUnitId ?? employeeOuId;
 
             var now = DateTime.Now;
             var today = DateOnly.FromDateTime(now);

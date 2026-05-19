@@ -1,0 +1,30 @@
+@using Pontaj.Models.Admin.Users
+@model UserDetail
+
+@if (Model != null)
+{
+    <div class="mt-2">
+        <table class="table table-sm table-hover align-middle text-center">
+            <thead class="table-light text-center text-nowrap">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Utilizator</th>
+                    <th scope="col">Angajat asociat</th>
+                    <th scope="col">Roluri</th>
+                    <th scope="col">Activ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.Id</td>
+                    <td>@Model.Username</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.EmployeeName) ? "—" : Model.EmployeeName)</td>
+                    <td>@(Model.Roles.Any() ? string.Join(", ", Model.Roles) : "—")</td>
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                        @(Model.Active ? "DA" : "NU")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

@@ -9,6 +9,7 @@ using Pontaj.Database.Pontaj;
 using Pontaj.Filters;
 using Pontaj.Models;
 using Pontaj.Repositories;
+using Pontaj.Services.Admin;
 using Pontaj.Services.Login;
 using Pontaj.Services.Logs;
 using Pontaj.Services.Scan;
@@ -90,6 +91,9 @@ builder.Services.AddScoped<IAppLogger, AppLogger>();
 
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmployeeAdminService, EmployeeAdminService>();
+builder.Services.AddScoped<IOrganizationalUnitAdminService, OrganizationalUnitAdminService>();
+builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddSingleton<IActiveDirectoryService>(

@@ -1,0 +1,35 @@
+@using Pontaj.Models.Admin.OrganizationalUnits
+@model List<OrganizationalUnitWorkStationItem>
+
+@if (Model != null && Model.Any())
+{
+    <div class="mt-2">
+        <table class="table table-sm table-hover align-middle text-center">
+            <thead class="table-light text-center text-nowrap">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nume</th>
+                    <th scope="col">IP</th>
+                    <th scope="col">Activ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ws in Model)
+                {
+                    <tr>
+                        <td>@ws.Id</td>
+                        <td>@ws.Name</td>
+                        <td>@(string.IsNullOrWhiteSpace(ws.Ip) ? "—" : ws.Ip)</td>
+                        <td class="active-cell" style="@(ws.Active ? "color: green; font-weight: bold;" : "")">
+                            @(ws.Active ? "DA" : "NU")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-muted fst-italic mt-3">Nicio stație de lucru asociată acestei unități.</p>
+}

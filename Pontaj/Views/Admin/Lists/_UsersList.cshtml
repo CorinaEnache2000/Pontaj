@@ -1,5 +1,21 @@
-﻿@* @page
-@model Pontaj.Views.Admin.Lists._UsersListModel
-@{
-}
- *@
+@using Pontaj.Models.Admin.Users
+@model List<UserListItem>
+
+<div id="userList">
+    @if (Model != null && Model.Any())
+    {
+        <ul class="list-group mb-0 small">
+            @foreach (var user in Model)
+            {
+                <li class="list-group-item list-group-item-action user-item @(user.Active ? "" : "text-muted fst-italic")"
+                    data-id="@user.Id">
+                    <b>@user.Username</b>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted fst-italic mt-3">Niciun utilizator înregistrat.</p>
+    }
+</div>

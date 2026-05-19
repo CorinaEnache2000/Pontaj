@@ -1,0 +1,83 @@
+@using Pontaj.Models.Admin.Users
+@model UsersViewModel
+@{
+    ViewData["Title"] = "Utilizatori";
+}
+
+<style>
+    .full-height {
+        height: 80vh;
+    }
+
+    .sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #userList {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .user-item {
+        cursor: pointer;
+    }
+
+    /* Light breathing room between detail-table columns. */
+    #userDetailsContent table {
+        width: 100%;
+        font-size: 0.8rem;
+    }
+
+    #userDetailsContent table th,
+    #userDetailsContent table td {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+</style>
+
+<div class="container-fluid full-height">
+    <div class="row full-height">
+        <!-- Sidebar: searchable list of all users -->
+        <div class="col-md-4 bg-light border-end sidebar p-2">
+            <div class="d-flex align-items-center mb-2">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       id="userSearch"
+                       placeholder="Caută după nume..." />
+            </div>
+
+            @await Html.PartialAsync("Lists/_UsersList", Model.Users)
+        </div>
+
+        <!-- Work area: tabbed details of the selected user -->
+        <div class="col-md-8 p-3 overflow-auto" id="userWorkArea">
+            <div id="userDetails" class="d-none">
+                <h4 id="selectedUserName" class="mb-3"></h4>
+                <ul class="nav nav-tabs" id="userTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button type="button" class="nav-link active" data-tab="UserGeneralInfo">
+                            General
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button type="button" class="nav-link" data-tab="UserRoles">
+                            Roluri
+                        </button>
+                    </li>
+                </ul>
+                <div id="userDetailsContent"></div>
+            </div>
+
+            <div id="userWorkAreaPlaceholder" class="text-muted fst-italic">
+                Selectați un utilizator din listă pentru a vedea detaliile.
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/users.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,21 @@
+@using Pontaj.Models.Admin.Employees
+@model List<EmployeeListItem>
+
+<div id="employeeList">
+    @if (Model != null && Model.Any())
+    {
+        <ul class="list-group mb-0 small">
+            @foreach (var employee in Model)
+            {
+                <li class="list-group-item list-group-item-action employee-item @(employee.Active ? "" : "text-muted fst-italic")"
+                    data-id="@employee.Id">
+                    <b>@employee.LastName @employee.FirstName</b>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted fst-italic mt-3">Niciun angajat înregistrat.</p>
+    }
+</div>

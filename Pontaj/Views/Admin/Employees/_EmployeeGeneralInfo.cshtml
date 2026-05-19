@@ -1,0 +1,40 @@
+@using Pontaj.Models.Admin.Employees
+@model EmployeeDetail
+
+@if (Model != null)
+{
+    <div class="mt-2">
+        <table class="table table-sm table-hover align-middle text-center">
+            <thead class="table-light text-center text-nowrap">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nume</th>
+                    <th scope="col">Prenume</th>
+                    <th scope="col">Marcă</th>
+                    <th scope="col">Cod</th>
+                    <th scope="col">PIN</th>
+                    <th scope="col">Data nașterii</th>
+                    <th scope="col">ID unitate</th>
+                    <th scope="col">Unitate organizațională</th>
+                    <th scope="col">Activ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.Id</td>
+                    <td>@Model.LastName</td>
+                    <td>@Model.FirstName</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.Badge) ? "—" : Model.Badge)</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.Code) ? "—" : Model.Code)</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.Pin) ? "—" : Model.Pin)</td>
+                    <td>@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("dd.MM.yyyy") : "—")</td>
+                    <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.OrganizationalUnitId)) : "—")</td>
+                    <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.Name)) : "—")</td>
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                        @(Model.Active ? "DA" : "NU")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

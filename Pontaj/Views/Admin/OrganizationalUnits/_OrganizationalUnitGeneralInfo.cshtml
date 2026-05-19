@@ -1,0 +1,36 @@
+@using Pontaj.Models.Admin.OrganizationalUnits
+@model OrganizationalUnitDetail
+
+@if (Model != null)
+{
+    <div class="mt-2">
+        <table class="table table-sm table-hover align-middle text-center">
+            <thead class="table-light text-center text-nowrap">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Denumire</th>
+                    <th scope="col">Denumire completă</th>
+                    <th scope="col">Tip</th>
+                    <th scope="col">Unitate părinte</th>
+                    <th scope="col">Limbă implicită</th>
+                    <th scope="col">Adresă</th>
+                    <th scope="col">Activ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.Id</td>
+                    <td>@Model.Denumire</td>
+                    <td>@Model.DenumireCompleta</td>
+                    <td>@Model.TypeName</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.ParentName) ? "—" : Model.ParentName)</td>
+                    <td>@Model.LanguageLabel</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</td>
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                        @(Model.Active ? "DA" : "NU")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,33 @@
+@using Pontaj.Models.Admin.Users
+@model List<UserRoleItem>
+
+@if (Model != null && Model.Any())
+{
+    <div class="mt-2">
+        <table class="table table-sm table-hover align-middle text-center">
+            <thead class="table-light text-center text-nowrap">
+                <tr>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Rol principal</th>
+                    <th scope="col">Activ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var role in Model)
+                {
+                    <tr>
+                        <td>@role.RoleName</td>
+                        <td>@(role.IsMainRole ? "DA" : "NU")</td>
+                        <td class="active-cell" style="@(role.Active ? "color: green; font-weight: bold;" : "")">
+                            @(role.Active ? "DA" : "NU")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-muted fst-italic mt-3">Niciun rol asociat acestui utilizator.</p>
+}

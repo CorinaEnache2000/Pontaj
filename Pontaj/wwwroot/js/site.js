@@ -5,6 +5,20 @@
 //   #toastContentHTML (iframe, used for HTML content), #toastContent (div, plain).
 // =============================================================================
 
+// Lowercase + strip diacritics so searches match regardless of diacritics:
+// "bucuresti" matches "București", "pitesti" matches "Pitești", etc. NFD splits
+// accented letters into base + combining mark; we drop the combining marks.
+function normalizeForSearch(value) {
+    if (value == null) {
+        return '';
+    }
+    return value
+        .toString()
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .toLowerCase();
+}
+
 function showToast(opType, content) {
     let title = '';
     let iconClass = '';

@@ -1,0 +1,29 @@
+@using Pontaj.Models.Admin.OrganizationalUnits
+@model OrganizationalUnitTreeNode
+
+<li class="ou-node collapsed" data-name="@Model.Name.ToLowerInvariant()" data-id="@Model.Id">
+    <div class="ou-row d-flex align-items-center">
+        @if (Model.Children.Any())
+        {
+            <button type="button" class="ou-toggle" title="Extinde / restrânge">
+                <i class="bi bi-caret-right-fill"></i>
+            </button>
+        }
+        <span class="ou-name @(Model.Active ? "" : "text-muted fst-italic")">
+            @Model.Name
+            @if (!Model.Active)
+            {
+                <span class="badge bg-secondary ms-1">inactiv</span>
+            }
+        </span>
+    </div>
+    @if (Model.Children.Any())
+    {
+        <ul class="ou-children list-unstyled">
+            @foreach (var child in Model.Children)
+            {
+                @await Html.PartialAsync("OrganizationalUnits/_OrganizationalUnitNode", child)
+            }
+        </ul>
+    }
+</li>

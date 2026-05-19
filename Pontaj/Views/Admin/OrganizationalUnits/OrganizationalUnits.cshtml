@@ -1,8 +1,147 @@
-﻿@{
+@using Pontaj.Models.Admin.OrganizationalUnits
+@model OrganizationalUnitsViewModel
+@{
     ViewData["Title"] = "Unități organizaționale";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bine ai venit, @(User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name)</h1>
-    <p class="text-muted">Unitățile organizaționale sunt disponibile aici.</p>
+<style>
+    .full-height {
+        height: 80vh;
+    }
+
+    .sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #ouTree {
+        flex-grow: 1;
+        overflow: auto;
+        min-height: 0;
+    }
+
+    #ouTree ul.ou-children {
+        margin-left: 1.5rem;
+    }
+
+    #ouTree .ou-row {
+        padding: 0.15rem 0;
+    }
+
+    #ouTree .ou-toggle {
+        width: 1.4rem;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        /* Caret hugs the start of its slot, not centered in it. */
+        text-align: left;
+    }
+
+    #ouTree .ou-toggle i {
+        transition: transform 0.15s ease;
+    }
+
+    /* Caret points right when collapsed, down when expanded. */
+    #ouTree .ou-node:not(.collapsed) > .ou-row .ou-toggle i {
+        transform: rotate(90deg);
+    }
+
+    #ouTree .ou-node.collapsed > ul.ou-children {
+        display: none;
+    }
+
+    #ouTree .ou-name {
+        cursor: pointer;
+        border-radius: 0.2rem;
+        padding: 0 0.25rem;
+    }
+
+    #ouTree .ou-name:hover {
+        background-color: #e9ecef;
+    }
+
+    /* Highlight nodes whose name matches the search. */
+    #ouTree .ou-node.ou-match > .ou-row > .ou-name {
+        background-color: #fff3cd;
+    }
+
+    /* Currently selected unit. */
+    #ouTree .ou-node.ou-selected > .ou-row > .ou-name {
+        background-color: #cfe2ff;
+        font-weight: 600;
+    }
+
+    /* Light breathing room between detail-table columns. */
+    #ouDetailsContent table {
+        width: 100%;
+        font-size: 0.8rem;
+    }
+
+    #ouDetailsContent table th,
+    #ouDetailsContent table td {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+</style>
+
+<div class="container-fluid full-height">
+    <div class="row full-height">
+        <!-- Sidebar: searchable parent/child tree -->
+        <div class="col-md-4 bg-light border-end sidebar p-2">
+            <div class="d-flex align-items-center mb-2">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       id="ouSearch"
+                       placeholder="Caută după nume..." />
+            </div>
+
+            <div id="ouTree">
+                @if (Model.Roots.Any())
+                {
+                    <ul class="ou-root list-unstyled">
+                        @foreach (var root in Model.Roots)
+                        {
+                            @await Html.PartialAsync("OrganizationalUnits/_OrganizationalUnitNode", root)
+                        }
+                    </ul>
+                    <p class="text-muted fst-italic d-none" id="ouNoMatch">Nicio unitate nu corespunde căutării.</p>
+                }
+                else
+                {
+                    <p class="text-muted fst-italic">Nicio unitate organizațională înregistrată.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Work area: tabbed details of the selected unit -->
+        <div class="col-md-8 p-3 overflow-auto" id="ouWorkArea">
+            <div id="ouDetails" class="d-none">
+                <h4 id="selectedOuName" class="mb-3"></h4>
+                <ul class="nav nav-tabs" id="ouTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button type="button" class="nav-link active" data-tab="OrganizationalUnitGeneralInfo">
+                            General
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button type="button" class="nav-link" data-tab="OrganizationalUnitWorkStations">
+                            Stații de lucru
+                        </button>
+                    </li>
+                </ul>
+                <div id="ouDetailsContent"></div>
+            </div>
+
+            <div id="ouWorkAreaPlaceholder" class="text-muted fst-italic">
+                Selectați o unitate din arbore pentru a vedea detaliile.
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/admin/organizationalunits.js" asp-append-version="true"></script>
+}

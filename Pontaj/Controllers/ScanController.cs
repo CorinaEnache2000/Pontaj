@@ -59,7 +59,6 @@ public class ScanController : ControllerBase
                 return NotFound(ResponseBase.Error("Card necunoscut. Acces refuzat."));
             }
 
-            // Resolve workstation: prefer hostname, fall back to IP.
             WorkStations? workStation = null;
             int? employeeOuId = await _employees.GetPrimaryActiveOrganizationalUnitIdAsync(employee.Id, ct);
 
@@ -93,8 +92,6 @@ public class ScanController : ControllerBase
                 InsertedTime = TimeOnly.FromDateTime(now),
                 InsertedMoment = now,
                 Ip = remoteIp
-                // InOut is set atomically inside the repository under a per-employee app lock,
-                // so two concurrent scans for the same employee can't both pick the same direction.
             };
 
             await _punches.InsertWithDirectionInferenceAsync(punch, ct);
@@ -108,7 +105,6 @@ public class ScanController : ControllerBase
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // Client disconnected mid-request — not a server error; let the framework handle it.
             throw;
         }
         catch (Exception ex)
@@ -122,9 +118,6 @@ public class ScanController : ControllerBase
         }
     }
 
-    // Swallow secondary failures (e.g. DB unreachable) so the caller's primary response
-    // path still completes. Losing a log row is preferable to returning a generic ASP.NET
-    // error page instead of our ResponseBase envelope.
     private async Task TryLogAsync(string action, string message, Exception? ex, string username)
     {
         try
@@ -133,7 +126,6 @@ public class ScanController : ControllerBase
         }
         catch
         {
-            // Intentionally swallowed.
         }
     }
 }

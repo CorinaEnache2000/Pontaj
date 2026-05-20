@@ -2,6 +2,7 @@
 @model EmployeesViewModel
 @{
     ViewData["Title"] = "Angajați";
+    ViewData["FullWidth"] = true;
 }
 
 <style>
@@ -35,9 +36,6 @@
         animation: spin 0.8s linear infinite;
     }
 
-    /* The detail table has many columns with single-line headers. Shrink the
-       font and keep it width-constrained so all columns fit the panel without
-       a horizontal scroll, while still leaving space between columns. */
     #employeeDetailsContent table {
         width: 100%;
         font-size: 0.75rem;
@@ -52,13 +50,12 @@
 
 <div class="container-fluid full-height">
     <div class="row full-height">
-        <!-- Sidebar: searchable list of all employees -->
         <div class="col-md-4 bg-light border-end sidebar p-2">
             <div class="d-flex align-items-center mb-2 gap-1">
                 <input type="text"
                        class="form-control form-control-sm"
                        id="employeeSearch"
-                       placeholder="Caută după nume..." />
+                       placeholder="Introduceți numele" />
                 <button type="button"
                         class="btn btn-primary btn-sm"
                         id="syncEmployees"
@@ -70,10 +67,17 @@
             @await Html.PartialAsync("Lists/_EmployeesList", Model.Employees)
         </div>
 
-        <!-- Work area: details of the selected employee -->
         <div class="col-md-8 p-3 overflow-auto" id="workArea">
             <div id="employeeDetails" class="d-none">
-                <h4 id="selectedEmployeeName" class="mb-3"></h4>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 id="selectedEmployeeName" class="mb-0"></h4>
+                    <button type="button"
+                            class="btn btn-sm"
+                            id="employeeToggleActiveButton"
+                            title="Activează / dezactivează angajatul">
+                        <span id="employeeToggleActiveLabel"></span>
+                    </button>
+                </div>
                 <div id="employeeDetailsContent"></div>
             </div>
 

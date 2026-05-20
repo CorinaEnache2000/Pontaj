@@ -1,4 +1,4 @@
-﻿using System.Runtime.Versioning;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,9 +23,6 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<JwtRefreshFilter>();
 });
 
-// Replace the default [ApiController] ProblemDetails response on model-binding failures
-// (malformed JSON, missing required fields, etc.) with our ResponseBase envelope, so the
-// 400 shape is consistent with every other JSON response in the app.
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -45,12 +42,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
 });
 
 builder.Services.AddDbContext<PontajContext>();
-// Separate factory for AppLogger so log writes (often in catch blocks) don't
-// share the request DbContext, which may be in a faulted state after a failed save.
-// Lifetime must be Scoped to match the DbContextOptions registered by AddDbContext above
-// — a Singleton factory can't consume the Scoped DbContextOptions (DI validator rejects).
-// The factory is stateless; per-request allocation is negligible. Each CreateDbContext call
-// still produces a fresh isolated context.
 builder.Services.AddDbContextFactory<PontajContext>(lifetime: ServiceLifetime.Scoped);
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -72,8 +63,6 @@ builder.Services.AddRateLimiter(options =>
             cancellationToken: ct);
     };
 
-    // Per-IP fixed window for the anonymous scan endpoint.
-    // 60/min comfortably covers shift-change bursts while blocking abuse loops.
     options.AddPolicy("scan", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -94,6 +83,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmployeeAdminService, EmployeeAdminService>();
 builder.Services.AddScoped<IOrganizationalUnitAdminService, OrganizationalUnitAdminService>();
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+builder.Services.AddScoped<IWorkStationAdminService, WorkStationAdminService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddSingleton<IActiveDirectoryService>(
@@ -107,9 +97,6 @@ using (var bootstrapContext = new PontajContext())
 {
     var configRepo = new ConfigurationRepository(bootstrapContext);
 
-    // Scan lock timeout: best-effort load — fall back to the compile-time default on any
-    // failure (row missing, unparseable value, transient DB hiccup). The scan endpoint
-    // must remain functional even if this row is absent.
     try
     {
         var scanLockRaw = configRepo.GetValue(ScanSettings.LockTimeoutMsConfigName);
@@ -120,7 +107,6 @@ using (var bootstrapContext = new PontajContext())
     }
     catch
     {
-        // Keep the default; do not block startup.
     }
 
     jwtSigningKey = configRepo.GetValue(JwtSettings.SigningKeyConfigName)
@@ -168,13 +154,10 @@ builder.Services
     .AddAuthentication(AuthSchemes.JwtHeader)
     .AddJwtBearer(AuthSchemes.JwtHeader, options =>
     {
-        // Reads the token from the Authorization: Bearer header (default behavior).
         options.TokenValidationParameters = tokenValidationParameters;
     })
     .AddJwtBearer(AuthSchemes.JwtCookie, options =>
     {
-        // Reads the token from a cookie (set client-side by JS) and redirects to the
-        // login page on auth failure instead of returning 401. Used for HTML routes.
         options.TokenValidationParameters = tokenValidationParameters;
         options.Events = new JwtBearerEvents
         {
@@ -190,10 +173,6 @@ builder.Services
             {
                 ctx.HandleResponse();
 
-                // OnChallenge only fires on protected (JwtCookie) routes, so reaching here
-                // always means the user was redirected from a protected page — show the
-                // "session expired / please log in" alert in either case. Clear any stale
-                // session cookie too so the browser stops sending it.
                 if (ctx.Request.Cookies.ContainsKey(AuthSchemes.SessionCookieName))
                 {
                     ctx.Response.Cookies.Delete(AuthSchemes.SessionCookieName, new CookieOptions
@@ -233,7 +212,6 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Static assets must be reachable without auth — the login page itself needs CSS/JS.
 app.MapStaticAssets().AllowAnonymous();
 
 app.MapControllers();

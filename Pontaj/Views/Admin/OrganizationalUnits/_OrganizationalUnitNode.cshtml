@@ -1,7 +1,7 @@
 @using Pontaj.Models.Admin.OrganizationalUnits
 @model OrganizationalUnitTreeNode
 
-<li class="ou-node collapsed" data-name="@Model.Name.ToLowerInvariant()" data-id="@Model.Id">
+<li class="ou-node collapsed" data-name="@Model.Name.ToLowerInvariant()" data-id="@Model.Id" data-active="@(Model.Active ? "true" : "false")">
     <div class="ou-row d-flex align-items-center">
         @if (Model.Children.Any())
         {
@@ -11,10 +11,6 @@
         }
         <span class="ou-name @(Model.Active ? "" : "text-muted fst-italic")">
             @Model.Name
-            @if (!Model.Active)
-            {
-                <span class="badge bg-secondary ms-1">inactiv</span>
-            }
         </span>
     </div>
     @if (Model.Children.Any())

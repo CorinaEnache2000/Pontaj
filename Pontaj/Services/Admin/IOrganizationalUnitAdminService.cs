@@ -9,4 +9,6 @@ public interface IOrganizationalUnitAdminService
     Task<OrganizationalUnitDetail?> GetDetailAsync(int id, CancellationToken ct = default);
 
     Task<List<OrganizationalUnitWorkStationItem>> GetWorkStationsAsync(int id, CancellationToken ct = default);
+
+    Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default);
 }

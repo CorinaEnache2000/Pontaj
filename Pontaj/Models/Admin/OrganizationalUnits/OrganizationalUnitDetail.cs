@@ -1,8 +1,5 @@
 namespace Pontaj.Models.Admin.OrganizationalUnits;
 
-// "General" tab payload for a single organizational unit. Denumire and
-// DenumireCompleta are resolved from the TextResources table at the unit's
-// default language (from InternalNameKey / PublicNameKey respectively).
 public class OrganizationalUnitDetail
 {
     public int Id { get; set; }

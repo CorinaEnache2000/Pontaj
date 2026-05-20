@@ -30,7 +30,7 @@
                     <td>@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("dd.MM.yyyy") : "—")</td>
                     <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.OrganizationalUnitId)) : "—")</td>
                     <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.Name)) : "—")</td>
-                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "color: red; font-weight: bold;")">
                         @(Model.Active ? "DA" : "NU")
                     </td>
                 </tr>

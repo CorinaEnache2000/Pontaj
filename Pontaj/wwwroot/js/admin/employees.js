@@ -1,9 +1,6 @@
-// Employees admin page: client-side list filter + on-demand detail loading.
-// The list is rendered server-side (Lists/_EmployeesList); clicking a row
-// fetches the detail partial as HTML via apiRequest and injects it.
-
 const APP_EMPLOYEE_DETAIL_URL = '/Admin/EmployeeGeneralInfo';
 const APP_EMPLOYEE_SYNC_URL = '/Admin/SyncEmployees';
+const APP_EMPLOYEE_SET_ACTIVE_URL = '/Admin/SetEmployeeActive';
 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('employeeSearch');
@@ -14,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedName = document.getElementById('selectedEmployeeName');
 
     let isLoading = false;
+    let selectedEmployee = null;
 
-    // ---- Client-side filter over the already-rendered rows -----------------
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             const filter = normalizeForSearch(searchInput.value.trim());
@@ -31,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Row click → load the detail partial ------------------------------
     if (list) {
         list.addEventListener('click', function (event) {
             const item = event.target.closest('.employee-item');
@@ -50,6 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const nameEl = item.querySelector('b');
             selectedName.textContent = nameEl ? nameEl.textContent : '';
 
+            selectedEmployee = {
+                id: parseInt(id, 10),
+                active: item.getAttribute('data-active') === 'true'
+            };
+            updateToggleActiveButton();
+
             placeholder.classList.add('d-none');
             details.classList.remove('d-none');
 
@@ -63,12 +65,69 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const toggleActiveButton = document.getElementById('employeeToggleActiveButton');
+    const toggleActiveLabel = document.getElementById('employeeToggleActiveLabel');
+
+    function updateToggleActiveButton() {
+        if (!toggleActiveButton || !toggleActiveLabel || !selectedEmployee) {
+            return;
+        }
+        if (selectedEmployee.active) {
+            toggleActiveLabel.textContent = 'Dezactivează';
+            toggleActiveButton.classList.remove('btn-success');
+            toggleActiveButton.classList.add('btn-danger');
+        } else {
+            toggleActiveLabel.textContent = 'Activează';
+            toggleActiveButton.classList.remove('btn-danger');
+            toggleActiveButton.classList.add('btn-success');
+        }
+    }
+
+    if (toggleActiveButton) {
+        toggleActiveButton.addEventListener('click', function () {
+            if (!selectedEmployee) {
+                return;
+            }
+            const targetActive = !selectedEmployee.active;
+            toggleActiveButton.disabled = true;
+
+            apiRequest({
+                method: 'POST',
+                path: APP_EMPLOYEE_SET_ACTIVE_URL,
+                body: { id: selectedEmployee.id, active: targetActive },
+                onSuccess: function () {
+                    showToast('success', targetActive ? 'Angajat activat.' : 'Angajat dezactivat.');
+                    reloadKeepingSelection(selectedEmployee.id);
+                },
+                onError: function (err) {
+                    showToast('error', err && err.message ? err.message : 'Eroare la modificare.');
+                    toggleActiveButton.disabled = false;
+                }
+            });
+        });
+    }
+
+    (function autoSelectFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const selectedId = params.get('selected');
+        if (!selectedId) {
+            return;
+        }
+        const item = list ? list.querySelector(
+            '.employee-item[data-id="' + selectedId.replace(/"/g, '') + '"]') : null;
+        if (item) {
+            const cleanUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+            item.scrollIntoView({ block: 'nearest' });
+            item.click();
+        }
+    })();
+
     function loadEmployeeDetail(id) {
         isLoading = true;
         document.body.style.cursor = 'wait';
         detailsContent.innerHTML = '<div class="text-muted mt-2">Se încarcă...</div>';
 
-        // success and error are mutually exclusive, so each releases the guard.
         const release = function () {
             isLoading = false;
             document.body.style.cursor = 'default';
@@ -94,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Sync button: pull employees from the source, then reload ---------
     const syncButton = document.getElementById('syncEmployees');
     if (syncButton) {
         const syncIcon = syncButton.querySelector('i');
@@ -119,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (typeof showToast === 'function') {
                         showToast('success', 'Sincronizare finalizată.');
                     }
-                    // Reload so the freshly synced list is rendered server-side.
                     window.location.reload();
                 },
                 onError: function (err) {

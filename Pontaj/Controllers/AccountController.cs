@@ -1,4 +1,4 @@
-﻿using System.Runtime.Versioning;
+using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontaj.Models;
@@ -96,15 +96,10 @@ public class AccountController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout()
     {
-        // Logout is a pure client-side operation (JS clears the cookie + localStorage).
-        // This endpoint exists only to record the event in LogEntries; the JS calls it
-        // fire-and-forget and does not wait for a response.
         await TryLogAsync("Logout", $"Utilizatorul {User.Identity?.Name} s-a delogat.");
         return Ok(new { success = true });
     }
 
-    // Swallow secondary failures so a logger glitch can never turn a clean response into
-    // a generic 500. Missing one log row is preferable to misleading the client.
     private async Task TryLogAsync(string action, string message, Exception? ex = null, string? username = null)
     {
         try
@@ -113,7 +108,6 @@ public class AccountController : ControllerBase
         }
         catch
         {
-            // Intentionally swallowed.
         }
     }
 

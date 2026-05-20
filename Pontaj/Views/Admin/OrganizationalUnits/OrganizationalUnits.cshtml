@@ -2,6 +2,7 @@
 @model OrganizationalUnitsViewModel
 @{
     ViewData["Title"] = "Unități organizaționale";
+    ViewData["FullWidth"] = true;
 }
 
 <style>
@@ -36,7 +37,6 @@
         background: transparent;
         color: inherit;
         cursor: pointer;
-        /* Caret hugs the start of its slot, not centered in it. */
         text-align: left;
     }
 
@@ -44,7 +44,6 @@
         transition: transform 0.15s ease;
     }
 
-    /* Caret points right when collapsed, down when expanded. */
     #ouTree .ou-node:not(.collapsed) > .ou-row .ou-toggle i {
         transform: rotate(90deg);
     }
@@ -63,18 +62,15 @@
         background-color: #e9ecef;
     }
 
-    /* Highlight nodes whose name matches the search. */
     #ouTree .ou-node.ou-match > .ou-row > .ou-name {
         background-color: #fff3cd;
     }
 
-    /* Currently selected unit. */
     #ouTree .ou-node.ou-selected > .ou-row > .ou-name {
         background-color: #cfe2ff;
         font-weight: 600;
     }
 
-    /* Light breathing room between detail-table columns. */
     #ouDetailsContent table {
         width: 100%;
         font-size: 0.8rem;
@@ -89,13 +85,12 @@
 
 <div class="container-fluid full-height">
     <div class="row full-height">
-        <!-- Sidebar: searchable parent/child tree -->
         <div class="col-md-4 bg-light border-end sidebar p-2">
             <div class="d-flex align-items-center mb-2">
                 <input type="text"
                        class="form-control form-control-sm"
                        id="ouSearch"
-                       placeholder="Caută după nume..." />
+                       placeholder="Introduceți numele" />
             </div>
 
             <div id="ouTree">
@@ -116,10 +111,17 @@
             </div>
         </div>
 
-        <!-- Work area: tabbed details of the selected unit -->
         <div class="col-md-8 p-3 overflow-auto" id="ouWorkArea">
             <div id="ouDetails" class="d-none">
-                <h4 id="selectedOuName" class="mb-3"></h4>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 id="selectedOuName" class="mb-0"></h4>
+                    <button type="button"
+                            class="btn btn-sm"
+                            id="ouToggleActiveButton"
+                            title="Activează / dezactivează unitatea">
+                        <span id="ouToggleActiveLabel"></span>
+                    </button>
+                </div>
                 <ul class="nav nav-tabs" id="ouTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button type="button" class="nav-link active" data-tab="OrganizationalUnitGeneralInfo">

@@ -1,12 +1,8 @@
-// Organizational-units page: searchable parent/child tree on the left,
-// tabbed details (General / Stații de lucru) on the right. The tree is
-// rendered server-side (recursive _OrganizationalUnitNode partial); tab
-// content is fetched as HTML partials via apiRequest.
-
 const APP_OU_TAB_URLS = {
     OrganizationalUnitGeneralInfo: '/Admin/OrganizationalUnitGeneralInfo',
     OrganizationalUnitWorkStations: '/Admin/OrganizationalUnitWorkStations'
 };
+const APP_OU_SET_ACTIVE_URL = '/Admin/SetOrganizationalUnitActive';
 
 document.addEventListener('DOMContentLoaded', function () {
     const tree = document.getElementById('ouTree');
@@ -24,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabs = document.getElementById('ouTabs');
 
     let currentOuId = null;
+    let currentOuActive = false;
     let isTabLoading = false;
 
     function allNodes() {
@@ -34,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return Array.from(node.querySelectorAll(':scope > ul.ou-children > li.ou-node'));
     }
 
-    // ---- Tree click: caret toggles, name selects -------------------------
     tree.addEventListener('click', function (event) {
         const toggle = event.target.closest('.ou-toggle');
         if (toggle) {
@@ -60,6 +56,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         currentOuId = id;
+        currentOuActive = node.getAttribute('data-active') === 'true';
+        updateToggleActiveButton();
 
         const selected = tree.querySelectorAll('.ou-node.ou-selected');
         selected.forEach(function (el) {
@@ -67,9 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         node.classList.add('ou-selected');
 
-        // First text node holds the name (an "inactiv" badge may follow).
-        const firstText = nameEl.childNodes[0];
-        selectedName.textContent = firstText ? firstText.textContent.trim() : nameEl.textContent.trim();
+        selectedName.textContent = nameEl.textContent.trim();
 
         placeholder.classList.add('d-none');
         details.classList.remove('d-none');
@@ -78,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function () {
         loadTab('OrganizationalUnitGeneralInfo');
     }
 
-    // ---- Tabs ------------------------------------------------------------
     function setActiveTab(tabName) {
         const buttons = tabs.querySelectorAll('button[data-tab]');
         buttons.forEach(function (btn) {
@@ -140,8 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Name search -----------------------------------------------------
-    // Returns true if this node or any descendant matches the term.
     function filterNode(node, term) {
         const name = normalizeForSearch(node.getAttribute('data-name') || '');
         let descendantMatch = false;
@@ -177,8 +170,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const term = normalizeForSearch(searchInput.value.trim());
 
         if (term === '') {
-            // Cleared search: show everything again but return to the
-            // closed-by-default state.
             allNodes().forEach(function (node) {
                 node.classList.remove('d-none');
                 node.classList.remove('ou-match');
@@ -210,4 +201,74 @@ document.addEventListener('DOMContentLoaded', function () {
     if (searchInput) {
         searchInput.addEventListener('input', applyFilter);
     }
+
+    const toggleActiveButton = document.getElementById('ouToggleActiveButton');
+    const toggleActiveLabel = document.getElementById('ouToggleActiveLabel');
+
+    function updateToggleActiveButton() {
+        if (!toggleActiveButton || !toggleActiveLabel || currentOuId == null) {
+            return;
+        }
+        if (currentOuActive) {
+            toggleActiveLabel.textContent = 'Dezactivează';
+            toggleActiveButton.classList.remove('btn-success');
+            toggleActiveButton.classList.add('btn-danger');
+        } else {
+            toggleActiveLabel.textContent = 'Activează';
+            toggleActiveButton.classList.remove('btn-danger');
+            toggleActiveButton.classList.add('btn-success');
+        }
+    }
+
+    if (toggleActiveButton) {
+        toggleActiveButton.addEventListener('click', function () {
+            if (currentOuId == null) {
+                return;
+            }
+            const targetActive = !currentOuActive;
+            toggleActiveButton.disabled = true;
+
+            apiRequest({
+                method: 'POST',
+                path: APP_OU_SET_ACTIVE_URL,
+                body: { id: parseInt(currentOuId, 10), active: targetActive },
+                onSuccess: function () {
+                    showToast('success', targetActive ? 'Unitate activată.' : 'Unitate dezactivată.');
+                    reloadKeepingSelection(currentOuId);
+                },
+                onError: function (err) {
+                    showToast('error', err && err.message ? err.message : 'Eroare la modificare.');
+                    toggleActiveButton.disabled = false;
+                }
+            });
+        });
+    }
+
+    (function autoSelectFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const selectedId = params.get('selected');
+        if (!selectedId) {
+            return;
+        }
+        const node = tree.querySelector(
+            '.ou-node[data-id="' + selectedId.replace(/"/g, '') + '"]');
+        if (!node) {
+            return;
+        }
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        let ancestor = node.parentElement;
+        while (ancestor && ancestor !== tree) {
+            if (ancestor.classList && ancestor.classList.contains('ou-node')) {
+                ancestor.classList.remove('collapsed');
+            }
+            ancestor = ancestor.parentElement;
+        }
+        node.scrollIntoView({ block: 'nearest' });
+        const nameEl = node.querySelector(':scope > .ou-row > .ou-name');
+        if (nameEl) {
+            selectNode(node, nameEl);
+        }
+    })();
 });

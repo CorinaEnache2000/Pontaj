@@ -1,0 +1,26 @@
+@using Pontaj.Models.Admin.WorkStations
+@model List<WorkStationListItem>
+
+<div id="workStationList">
+    @if (Model != null && Model.Any())
+    {
+        <ul class="list-group mb-0 small">
+            @foreach (var ws in Model)
+            {
+                <li class="list-group-item list-group-item-action workstation-item @(ws.Active ? "" : "text-muted fst-italic")"
+                    data-id="@ws.Id"
+                    data-name="@ws.Name"
+                    data-ip="@(ws.Ip ?? string.Empty)"
+                    data-ou-id="@ws.OrganizationalUnitId"
+                    data-ou-name="@ws.OrganizationalUnitName">
+                    <b>@ws.Name</b>
+                    <small class="text-muted d-block">@ws.OrganizationalUnitName</small>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted fst-italic mt-3">Nicio stație de lucru înregistrată.</p>
+    }
+</div>

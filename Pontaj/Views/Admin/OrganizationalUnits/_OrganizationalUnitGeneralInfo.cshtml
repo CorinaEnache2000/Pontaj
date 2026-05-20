@@ -26,7 +26,7 @@
                     <td>@(string.IsNullOrWhiteSpace(Model.ParentName) ? "—" : Model.ParentName)</td>
                     <td>@Model.LanguageLabel</td>
                     <td>@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</td>
-                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "")">
+                    <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "color: red; font-weight: bold;")">
                         @(Model.Active ? "DA" : "NU")
                     </td>
                 </tr>

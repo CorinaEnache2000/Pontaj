@@ -4,9 +4,6 @@ using Pontaj.Models.Admin.Users;
 
 namespace Pontaj.Services.Admin;
 
-// Read-only assembly of the Users admin page models, same shape as the
-// Employees / OrganizationalUnits admin services: a flat list for the sidebar,
-// per-user detail (General / Roluri) loaded on demand.
 public class UserAdminService : IUserAdminService
 {
     private readonly PontajContext _context;
@@ -49,6 +46,18 @@ public class UserAdminService : IUserAdminService
                 Active = u.Active
             })
             .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default)
+    {
+        var entity = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
+        if (entity == null)
+        {
+            return "Utilizatorul nu există.";
+        }
+        entity.Active = active;
+        await _context.SaveChangesAsync(ct);
+        return null;
     }
 
     public async Task<List<UserRoleItem>> GetRolesAsync(int id, CancellationToken ct = default)

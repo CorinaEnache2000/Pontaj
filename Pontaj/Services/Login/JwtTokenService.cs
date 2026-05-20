@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -36,8 +36,6 @@ public class JwtTokenService : IJwtTokenService
 
     public JwtTokenResult CreateTokenFromPrincipal(ClaimsPrincipal principal)
     {
-        // Re-issue with the same identity claims and a fresh exp/jti.
-        // Filters out time/signature claims that JwtSecurityToken regenerates itself.
         var excluded = new HashSet<string>(StringComparer.Ordinal)
         {
             JwtRegisteredClaimNames.Exp,

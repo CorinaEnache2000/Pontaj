@@ -2,6 +2,7 @@
 @model UsersViewModel
 @{
     ViewData["Title"] = "Utilizatori";
+    ViewData["FullWidth"] = true;
 }
 
 <style>
@@ -25,7 +26,6 @@
         cursor: pointer;
     }
 
-    /* Light breathing room between detail-table columns. */
     #userDetailsContent table {
         width: 100%;
         font-size: 0.8rem;
@@ -40,22 +40,28 @@
 
 <div class="container-fluid full-height">
     <div class="row full-height">
-        <!-- Sidebar: searchable list of all users -->
         <div class="col-md-4 bg-light border-end sidebar p-2">
             <div class="d-flex align-items-center mb-2">
                 <input type="text"
                        class="form-control form-control-sm"
                        id="userSearch"
-                       placeholder="Caută după nume..." />
+                       placeholder="Introduceți numele" />
             </div>
 
             @await Html.PartialAsync("Lists/_UsersList", Model.Users)
         </div>
 
-        <!-- Work area: tabbed details of the selected user -->
         <div class="col-md-8 p-3 overflow-auto" id="userWorkArea">
             <div id="userDetails" class="d-none">
-                <h4 id="selectedUserName" class="mb-3"></h4>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 id="selectedUserName" class="mb-0"></h4>
+                    <button type="button"
+                            class="btn btn-sm"
+                            id="userToggleActiveButton"
+                            title="Activează / dezactivează utilizatorul">
+                        <span id="userToggleActiveLabel"></span>
+                    </button>
+                </div>
                 <ul class="nav nav-tabs" id="userTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button type="button" class="nav-link active" data-tab="UserGeneralInfo">

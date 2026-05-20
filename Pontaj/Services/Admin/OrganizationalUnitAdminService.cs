@@ -4,9 +4,6 @@ using Pontaj.Models.Admin.OrganizationalUnits;
 
 namespace Pontaj.Services.Admin;
 
-// Builds the organizational-units tree from the self-referencing
-// ParentOrganizationalUnitId. Read-only. Names are resolved from
-// TextResources at each unit's default language, same as the Employees page.
 public class OrganizationalUnitAdminService : IOrganizationalUnitAdminService
 {
     private readonly PontajContext _context;
@@ -37,8 +34,6 @@ public class OrganizationalUnitAdminService : IOrganizationalUnitAdminService
 
         foreach (var node in flat)
         {
-            // A unit is a root if it has no parent, points at itself (bad
-            // data), or its parent row is missing — never drop a unit.
             if (node.ParentId.HasValue
                 && node.ParentId.Value != node.Id
                 && byId.TryGetValue(node.ParentId.Value, out var parent))
@@ -57,8 +52,6 @@ public class OrganizationalUnitAdminService : IOrganizationalUnitAdminService
 
     public async Task<OrganizationalUnitDetail?> GetDetailAsync(int id, CancellationToken ct = default)
     {
-        // Pull the resolved names plus the raw address parts; the address text
-        // is composed in memory (conditional joins don't translate cleanly).
         var raw = await _context.OrganizationalUnits
             .Where(o => o.Id == id)
             .Select(o => new
@@ -125,8 +118,6 @@ public class OrganizationalUnitAdminService : IOrganizationalUnitAdminService
         };
     }
 
-    // Builds a human-readable Romanian address line from the structured parts,
-    // falling back to the free-text Line1/Line2 when there is no linked street.
     private static string? ComposeAddress(
         string? streetAbbr, string? streetName, string? number, string? building,
         string? entrance, string? floor, string? apartment, string? localityName,
@@ -177,6 +168,18 @@ public class OrganizationalUnitAdminService : IOrganizationalUnitAdminService
 
         var result = string.Join(", ", parts);
         return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    public async Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default)
+    {
+        var entity = await _context.OrganizationalUnits.FirstOrDefaultAsync(o => o.Id == id, ct);
+        if (entity == null)
+        {
+            return "Unitatea organizațională nu există.";
+        }
+        entity.Active = active;
+        await _context.SaveChangesAsync(ct);
+        return null;
     }
 
     public async Task<List<OrganizationalUnitWorkStationItem>> GetWorkStationsAsync(int id, CancellationToken ct = default)

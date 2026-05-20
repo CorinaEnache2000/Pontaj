@@ -1,19 +1,3 @@
-// =============================================================================
-// Pontaj backend client — XHR-based, JWT Bearer auth, sliding token refresh.
-//
-// Server contract (ResponseBase envelope, content-type application/json):
-//   { status: 'success' | 'error',
-//     reason: string | null,    // human-readable; null on success, set on error
-//     data:   <any payload>,
-//     token:  string | null }   // if non-null, client mirrors it to localStorage and a cookie
-//
-// The session token is mirrored to a 'sessionToken' cookie (SameSite=Strict, Secure, Path=/)
-// so the browser auto-sends it on HTML navigations. Cookie is JS-set (not HttpOnly) and
-// is cleared whenever the token is cleared or detected as expired client-side.
-//
-// HTML endpoints return content-type text/html and raw HTML. Use expect:'html'.
-// =============================================================================
-
 const APP_TOKEN_KEY = 'sessionToken';
 const APP_SESSION_EXPIRED_FLAG = 'isSessionExpired';
 const APP_LOGIN_URL = '/Account/Login';
@@ -32,7 +16,6 @@ function apiRequest({
     onSuccess = null,
     onError = null
 }) {
-    // ---- Pre-flight: bail out early on a known-expired token ---------------
     let token = null;
     if (!skipAuth) {
         token = localStorage.getItem(APP_TOKEN_KEY);
@@ -42,7 +25,6 @@ function apiRequest({
         }
     }
 
-    // ---- Build URL ---------------------------------------------------------
     let url = path;
     if (query) {
         const qs = typeof query === 'string' ? query : encodeUrlForm(query);
@@ -51,7 +33,6 @@ function apiRequest({
         }
     }
 
-    // ---- Open + headers ----------------------------------------------------
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
     xhr.timeout = timeoutSeconds * 1000;
@@ -62,11 +43,9 @@ function apiRequest({
         bearerSent = true;
     }
 
-    // ---- Build payload + Content-Type --------------------------------------
     let payload = null;
     if (body != null) {
         if (body instanceof FormData) {
-            // multipart/form-data — browser sets the boundary; do NOT set Content-Type ourselves
             payload = body;
         } else if (bodyType === 'form') {
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8');
@@ -81,7 +60,6 @@ function apiRequest({
         xhr.responseType = 'blob';
     }
 
-    // ---- Response handling -------------------------------------------------
     xhr.onload = function () {
         if (xhr.status === 401 && bearerSent) {
             handleSessionExpired();
@@ -108,7 +86,6 @@ function apiRequest({
             return;
         }
 
-        // expect === 'json' → parse ResponseBase envelope
         let envelope = null;
         try {
             envelope = xhr.responseText ? JSON.parse(xhr.responseText) : null;
@@ -117,7 +94,6 @@ function apiRequest({
             return;
         }
 
-        // Sliding-token refresh — mirror to localStorage and cookie
         if (envelope && typeof envelope.token === 'string' && envelope.token.length > 0) {
             writeSessionToken(envelope.token);
         }
@@ -150,17 +126,11 @@ function apiRequest({
     try {
         xhr.send(payload);
     } catch (err) {
-        // xhr.send can throw synchronously when the URL/state is rejected before the
-        // request leaves the browser (rare, but leaves the caller hanging if uncaught).
         dispatchError({ status: 0, message: 'Eroare la trimiterea cererii.' }, onError);
         return null;
     }
     return xhr;
 }
-
-// =============================================================================
-// Helpers
-// =============================================================================
 
 function encodeUrlForm(obj) {
     const parts = [];
@@ -183,7 +153,6 @@ function isJwtExpired(token) {
         return true;
     }
 
-    // JWT uses base64url; convert to plain base64 for atob
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
 
     let payloadJson;

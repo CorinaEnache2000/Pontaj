@@ -24,7 +24,14 @@
 
                 <div class="mb-3">
                     <label for="password" class="form-label">Parolă</label>
-                    <input type="password" class="form-control" id="password" autocomplete="current-password" />
+                    <div class="position-relative">
+                        <input type="password" class="form-control pe-5" id="password" autocomplete="current-password" />
+                        <button type="button" id="toggle-password" tabindex="-1"
+                                class="btn btn-link p-0 border-0 shadow-none text-secondary text-decoration-none position-absolute top-50 end-0 translate-middle-y me-3"
+                                aria-label="Afișează parola" title="Afișează parola">
+                            <i class="bi bi-eye" id="toggle-password-icon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="d-grid">

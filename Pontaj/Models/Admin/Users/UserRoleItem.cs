@@ -1,6 +1,5 @@
 namespace Pontaj.Models.Admin.Users;
 
-// One row in the "Roluri" tab for a selected user.
 public class UserRoleItem
 {
     public int RoleId { get; set; }

@@ -1,11 +1,8 @@
-// Users page: searchable list on the left, tabbed details (General / Roluri)
-// on the right. List is rendered server-side (_UsersList); tab content is
-// fetched as HTML partials via apiRequest, same pattern as the OU page.
-
 const APP_USER_TAB_URLS = {
     UserGeneralInfo: '/Admin/UserGeneralInfo',
     UserRoles: '/Admin/UserRoles'
 };
+const APP_USER_SET_ACTIVE_URL = '/Admin/SetUserActive';
 
 document.addEventListener('DOMContentLoaded', function () {
     const list = document.getElementById('userList');
@@ -21,9 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabs = document.getElementById('userTabs');
 
     let currentUserId = null;
+    let currentUserActive = false;
     let isTabLoading = false;
 
-    // ---- Client-side filter (diacritic-insensitive) ----------------------
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             const filter = normalizeForSearch(searchInput.value.trim());
@@ -39,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Row click → select user ----------------------------------------
     list.addEventListener('click', function (event) {
         const item = event.target.closest('.user-item');
         if (!item || isTabLoading) {
@@ -51,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         currentUserId = id;
+        currentUserActive = item.getAttribute('data-active') === 'true';
+        updateToggleActiveButton();
 
         const active = list.querySelectorAll('.user-item.active');
         active.forEach(function (el) {
@@ -68,7 +66,64 @@ document.addEventListener('DOMContentLoaded', function () {
         loadTab('UserGeneralInfo');
     });
 
-    // ---- Tabs ------------------------------------------------------------
+    const toggleActiveButton = document.getElementById('userToggleActiveButton');
+    const toggleActiveLabel = document.getElementById('userToggleActiveLabel');
+
+    function updateToggleActiveButton() {
+        if (!toggleActiveButton || !toggleActiveLabel || currentUserId == null) {
+            return;
+        }
+        if (currentUserActive) {
+            toggleActiveLabel.textContent = 'Dezactivează';
+            toggleActiveButton.classList.remove('btn-success');
+            toggleActiveButton.classList.add('btn-danger');
+        } else {
+            toggleActiveLabel.textContent = 'Activează';
+            toggleActiveButton.classList.remove('btn-danger');
+            toggleActiveButton.classList.add('btn-success');
+        }
+    }
+
+    if (toggleActiveButton) {
+        toggleActiveButton.addEventListener('click', function () {
+            if (currentUserId == null) {
+                return;
+            }
+            const targetActive = !currentUserActive;
+            toggleActiveButton.disabled = true;
+
+            apiRequest({
+                method: 'POST',
+                path: APP_USER_SET_ACTIVE_URL,
+                body: { id: parseInt(currentUserId, 10), active: targetActive },
+                onSuccess: function () {
+                    showToast('success', targetActive ? 'Utilizator activat.' : 'Utilizator dezactivat.');
+                    reloadKeepingSelection(currentUserId);
+                },
+                onError: function (err) {
+                    showToast('error', err && err.message ? err.message : 'Eroare la modificare.');
+                    toggleActiveButton.disabled = false;
+                }
+            });
+        });
+    }
+
+    (function autoSelectFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const selectedId = params.get('selected');
+        if (!selectedId) {
+            return;
+        }
+        const item = list.querySelector(
+            '.user-item[data-id="' + selectedId.replace(/"/g, '') + '"]');
+        if (item) {
+            const cleanUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+            item.scrollIntoView({ block: 'nearest' });
+            item.click();
+        }
+    })();
+
     function setActiveTab(tabName) {
         const buttons = tabs.querySelectorAll('button[data-tab]');
         buttons.forEach(function (btn) {

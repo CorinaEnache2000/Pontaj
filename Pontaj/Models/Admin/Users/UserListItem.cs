@@ -1,6 +1,5 @@
 namespace Pontaj.Models.Admin.Users;
 
-// One row in the left-side users list.
 public class UserListItem
 {
     public int Id { get; set; }

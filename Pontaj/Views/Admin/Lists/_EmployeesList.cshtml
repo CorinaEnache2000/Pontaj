@@ -8,7 +8,8 @@
             @foreach (var employee in Model)
             {
                 <li class="list-group-item list-group-item-action employee-item @(employee.Active ? "" : "text-muted fst-italic")"
-                    data-id="@employee.Id">
+                    data-id="@employee.Id"
+                    data-active="@(employee.Active ? "true" : "false")">
                     <b>@employee.LastName @employee.FirstName</b>
                 </li>
             }

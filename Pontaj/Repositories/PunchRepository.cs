@@ -18,16 +18,11 @@ public class PunchRepository : IPunchRepository
 
     public async Task InsertWithDirectionInferenceAsync(Punches punch, CancellationToken ct = default)
     {
-        // Per-employee named application lock. Two concurrent scans for the same employee
-        // serialize through this lock; scans for different employees use different lock
-        // resources and don't contend with each other at all.
         var lockKey = $"ScanLock:Emp:{punch.EmployeeId}";
         var lockTimeoutMs = _scanOptions.LockTimeoutMs;
 
         await using var tx = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
 
-        // sp_getapplock returns < 0 on timeout / failure; THROW surfaces it as SqlException.
-        // LockOwner=Transaction releases the lock automatically on COMMIT/ROLLBACK.
         await _context.Database.ExecuteSqlInterpolatedAsync(
             $@"DECLARE @ret INT;
                EXEC @ret = sp_getapplock

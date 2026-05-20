@@ -1,7 +1,5 @@
 namespace Pontaj.Models.Admin.Employees;
 
-// Right-side detail panel for a single selected employee, plus the
-// organizational units the employee is assigned to.
 public class EmployeeDetail
 {
     public int Id { get; set; }
@@ -20,6 +18,5 @@ public class EmployeeDetail
 
     public bool Active { get; set; }
 
-    // The employee's organizational units (id + resolved display name).
     public List<EmployeeOrganizationalUnitItem> OrganizationalUnits { get; set; } = new();
 }

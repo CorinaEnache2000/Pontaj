@@ -20,7 +20,7 @@
                         <td>@ws.Id</td>
                         <td>@ws.Name</td>
                         <td>@(string.IsNullOrWhiteSpace(ws.Ip) ? "—" : ws.Ip)</td>
-                        <td class="active-cell" style="@(ws.Active ? "color: green; font-weight: bold;" : "")">
+                        <td class="active-cell" style="@(ws.Active ? "color: green; font-weight: bold;" : "color: red; font-weight: bold;")">
                             @(ws.Active ? "DA" : "NU")
                         </td>
                     </tr>

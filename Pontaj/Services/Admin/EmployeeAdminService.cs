@@ -4,9 +4,6 @@ using Pontaj.Models.Admin.Employees;
 
 namespace Pontaj.Services.Admin;
 
-// Read-only assembly of the Employees admin page models. Mirrors the ManVan
-// UserService pattern: a flat list for the sidebar, a richer per-row detail
-// loaded on demand. No writes, so the deferred-SaveChanges repo rule is N/A.
 public class EmployeeAdminService : IEmployeeAdminService
 {
     private readonly PontajContext _context;
@@ -47,8 +44,6 @@ public class EmployeeAdminService : IEmployeeAdminService
                 Badge = e.Badge,
                 Code = e.Code,
                 Active = e.Active,
-                // Resolve each OU's display name from TextResources at the OU's
-                // default language; fall back to the raw key if no resource row.
                 OrganizationalUnits = e.EmployeeOrganizationalUnits
                     .Select(eou => new EmployeeOrganizationalUnitItem
                     {
@@ -63,21 +58,27 @@ public class EmployeeAdminService : IEmployeeAdminService
             })
             .FirstOrDefaultAsync(ct);
 
-        // Sort by the resolved display name (not the raw key) so the list is
-        // alphabetical by what the user actually sees.
         detail?.OrganizationalUnits.Sort(
             (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
 
         return detail;
     }
 
+    public async Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default)
+    {
+        var entity = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id, ct);
+        if (entity == null)
+        {
+            return "Angajatul nu există.";
+        }
+        entity.Active = active;
+        await _context.SaveChangesAsync(ct);
+        return null;
+    }
+
     public async Task<int> SyncEmployeesAsync(CancellationToken ct = default)
     {
-        // TODO: wire the real employee source here (Active Directory bulk
-        // enumeration, or a second read-only HR/DW DbContext — decision pending).
-        // The button, spinner, endpoint, audit log and list refresh are all
-        // fully wired like the ManVan SaleAgents sync; only this data-pull is a
-        // no-op stub for now. Returns the count of records processed.
+        // TODO: wire the real employee source (AD bulk enumeration or read-only HR/DW context).
         await Task.CompletedTask;
         return 0;
     }

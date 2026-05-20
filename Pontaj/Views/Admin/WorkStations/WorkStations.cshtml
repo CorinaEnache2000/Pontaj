@@ -1,0 +1,238 @@
+@using Pontaj.Models.Admin.WorkStations
+@model WorkStationsViewModel
+@{
+    ViewData["Title"] = "Stații de lucru";
+    ViewData["FullWidth"] = true;
+}
+
+<style>
+    .full-height {
+        height: 80vh;
+    }
+
+    .sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #workStationList {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .workstation-item {
+        cursor: pointer;
+    }
+
+    #workStationDetailsContent table {
+        width: 100%;
+        font-size: 0.8rem;
+    }
+
+    #workStationDetailsContent table th,
+    #workStationDetailsContent table td {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+</style>
+
+<div class="container-fluid full-height">
+    <div class="row full-height">
+        <div class="col-md-4 bg-light border-end sidebar p-2">
+            <div class="d-flex align-items-center mb-2 gap-1">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       id="workStationSearch"
+                       placeholder="Introduceți numele" />
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        id="workStationFilterButton"
+                        data-bs-toggle="modal"
+                        data-bs-target="#workStationFilterModal"
+                        title="Filtrează">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <button type="button"
+                        class="btn btn-primary btn-sm"
+                        id="workStationAddButton"
+                        data-bs-toggle="modal"
+                        data-bs-target="#workStationAddModal"
+                        title="Adaugă stație de lucru">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+
+            <div class="mb-2 d-none" id="workStationActiveFilters">
+                <div class="d-flex flex-column align-items-start gap-1" id="workStationActiveFiltersBadge"></div>
+                <button type="button"
+                        class="btn btn-link btn-sm p-0 mt-1 align-baseline"
+                        id="workStationClearFilters">
+                    Șterge filtrele
+                </button>
+            </div>
+
+            @await Html.PartialAsync("Lists/_WorkStationsList", Model.WorkStations)
+        </div>
+
+        <div class="col-md-8 p-3 overflow-auto" id="workStationWorkArea">
+            <div id="workStationDetails" class="d-none">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 id="selectedWorkStationName" class="mb-0"></h4>
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-primary btn-sm text-white"
+                                id="workStationEditButton"
+                                title="Editează stația">
+                            <i class="bi bi-pencil"></i> Editează
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm"
+                                id="workStationToggleActiveButton"
+                                title="Activează / dezactivează stația">
+                            <span id="workStationToggleActiveLabel"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="workStationDetailsContent"></div>
+            </div>
+
+            <div id="workStationWorkAreaPlaceholder" class="text-muted fst-italic">
+                Selectați o stație de lucru din listă pentru a vedea detaliile.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="workStationFilterModal" tabindex="-1" aria-labelledby="workStationFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="workStationFilterModalLabel">Filtrează stațiile de lucru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="filterOu" class="form-label">Unitate organizațională</label>
+                    <select class="form-select form-select-sm" id="filterOu" multiple>
+                        <option value="">Toate</option>
+                        @foreach (var ou in Model.OrganizationalUnits)
+                        {
+                            <option value="@ou.Id">@ou.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="filterIp" class="form-label">IP</label>
+                    <input type="text" class="form-control form-control-sm" id="filterIp" placeholder="Introduceți IP-ul" />
+                </div>
+                <div class="mb-3">
+                    <label for="filterName" class="form-label">Nume</label>
+                    <input type="text" class="form-control form-control-sm" id="filterName" placeholder="Introduceți numele" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterResetButton">
+                    Resetează
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="filterApplyButton" data-bs-dismiss="modal">
+                    Filtrează
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="workStationEditModal" tabindex="-1" aria-labelledby="workStationEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="workStationEditModalLabel">Editează stație de lucru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId" />
+                <div class="mb-3">
+                    <label for="editName" class="form-label">Nume <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" id="editName" placeholder="Introduceți numele" required />
+                </div>
+                <div class="mb-3">
+                    <label for="editIp" class="form-label">IP</label>
+                    <input type="text" class="form-control form-control-sm" id="editIp" placeholder="Introduceți IP-ul" />
+                </div>
+                <div class="mb-3">
+                    <label for="editOu" class="form-label">Unitate organizațională <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-sm" id="editOu" required>
+                        <option value="">Selectați...</option>
+                        @foreach (var ou in Model.OrganizationalUnits)
+                        {
+                            <option value="@ou.Id">@ou.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="editActive" />
+                    <label class="form-check-label" for="editActive">Activ</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    Anulează
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="editSubmitButton">
+                    <span id="editSubmitSpinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                    Salvează
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="workStationAddModal" tabindex="-1" aria-labelledby="workStationAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="workStationAddModalLabel">Adaugă stație de lucru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="addName" class="form-label">Nume <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" id="addName" placeholder="Introduceți numele" required />
+                </div>
+                <div class="mb-3">
+                    <label for="addIp" class="form-label">IP</label>
+                    <input type="text" class="form-control form-control-sm" id="addIp" placeholder="Introduceți IP-ul" />
+                </div>
+                <div class="mb-3">
+                    <label for="addOu" class="form-label">Unitate organizațională <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-sm" id="addOu" required>
+                        <option value="">Selectați...</option>
+                        @foreach (var ou in Model.OrganizationalUnits)
+                        {
+                            <option value="@ou.Id">@ou.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="addActive" checked />
+                    <label class="form-check-label" for="addActive">Activ</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    Anulează
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="addSubmitButton">
+                    <span id="addSubmitSpinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                    Salvează
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/workstations.js" asp-append-version="true"></script>
+}

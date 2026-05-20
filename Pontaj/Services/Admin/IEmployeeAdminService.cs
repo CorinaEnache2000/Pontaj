@@ -8,6 +8,7 @@ public interface IEmployeeAdminService
 
     Task<EmployeeDetail?> GetEmployeeDetailAsync(int id, CancellationToken ct = default);
 
-    // Returns the number of employee records processed by the sync.
     Task<int> SyncEmployeesAsync(CancellationToken ct = default);
+
+    Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default);
 }

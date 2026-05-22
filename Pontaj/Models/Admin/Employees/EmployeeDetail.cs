@@ -16,6 +16,8 @@ public class EmployeeDetail
 
     public string? Code { get; set; }
 
+    public string? Username { get; set; }
+
     public bool Active { get; set; }
 
     public List<EmployeeOrganizationalUnitItem> OrganizationalUnits { get; set; } = new();

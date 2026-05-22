@@ -1,5 +1,6 @@
 using Pontaj.Database.Pontaj;
 using Pontaj.Repositories;
+using Pontaj.Services.Logs;
 
 namespace Pontaj.Services.Login;
 
@@ -7,28 +8,57 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IUserRoleRepository _userRoleLinkRepository;
+    private readonly IEmployeeRepository _employeeRepository;
+    private readonly IAppLogger _logger;
 
-    public UserService(IUserRepository userRepository, IUserRoleRepository userRoleLinkRepository)
+    public UserService(
+        IUserRepository userRepository,
+        IUserRoleRepository userRoleLinkRepository,
+        IEmployeeRepository employeeRepository,
+        IAppLogger logger)
     {
         _userRepository = userRepository;
         _userRoleLinkRepository = userRoleLinkRepository;
+        _employeeRepository = employeeRepository;
+        _logger = logger;
     }
 
     public async Task<AppUsers> GetOrCreateUserAsync(string username, CancellationToken ct = default)
     {
         var user = await _userRepository.GetByUsernameAsync(username, ct);
-        if (user != null)
+        if (user == null)
         {
-            return user;
+            user = new AppUsers
+            {
+                Username = username,
+                Active = true
+            };
+            await _userRepository.AddAsync(user, ct);
+            await _userRepository.SaveChangesAsync(ct);
         }
 
-        user = new AppUsers
+        if (!user.EmployeeId.HasValue)
         {
-            Username = username,
-            Active = true
-        };
-        await _userRepository.AddAsync(user, ct);
-        await _userRepository.SaveChangesAsync(ct);
+            var employeeId = await _employeeRepository.GetActiveIdByUsernameAsync(username, ct);
+            if (employeeId.HasValue)
+            {
+                user.EmployeeId = employeeId.Value;
+                await _userRepository.SaveChangesAsync(ct);
+
+                try
+                {
+                    await _logger.LogAsync(
+                        "User_AutoLink",
+                        $"Utilizator '{username}' asociat automat cu angajatul Id={employeeId.Value}.",
+                        null,
+                        username);
+                }
+                catch
+                {
+                }
+            }
+        }
+
         return user;
     }
 

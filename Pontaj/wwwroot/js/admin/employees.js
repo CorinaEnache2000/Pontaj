@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 path: APP_EMPLOYEE_SET_ACTIVE_URL,
                 body: { id: selectedEmployee.id, active: targetActive },
                 onSuccess: function () {
-                    showToast('success', targetActive ? 'Angajat activat.' : 'Angajat dezactivat.');
+                    queueToast('success', targetActive ? 'Angajat activat.' : 'Angajat dezactivat.');
                     reloadKeepingSelection(selectedEmployee.id);
                 },
                 onError: function (err) {

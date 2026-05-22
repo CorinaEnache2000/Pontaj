@@ -179,6 +179,35 @@ function reloadKeepingSelection(id) {
     window.location.href = url.toString();
 }
 
+function queueToast(opType, content) {
+    try {
+        sessionStorage.setItem('pendingToast', JSON.stringify({ opType: opType, content: content }));
+    } catch (e) {
+    }
+}
+
+function showPendingToast() {
+    let raw = null;
+    try {
+        raw = sessionStorage.getItem('pendingToast');
+    } catch (e) {
+        return;
+    }
+    if (!raw) {
+        return;
+    }
+    sessionStorage.removeItem('pendingToast');
+    let parsed = null;
+    try {
+        parsed = JSON.parse(raw);
+    } catch (e) {
+        return;
+    }
+    if (parsed && parsed.opType && parsed.content) {
+        showToast(parsed.opType, parsed.content);
+    }
+}
+
 function showToast(opType, content) {
     let title = '';
     let iconClass = '';
@@ -279,6 +308,8 @@ function showToast(opType, content) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    showPendingToast();
+
     const logoutBtn = document.getElementById('btn-logout');
 
     if (logoutBtn) {

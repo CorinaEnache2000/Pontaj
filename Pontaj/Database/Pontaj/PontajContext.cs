@@ -110,6 +110,8 @@ public partial class PontajContext : DbContext
 
         modelBuilder.Entity<AppUsers>(entity =>
         {
+            entity.HasIndex(e => e.Username, "UX_AppUsers_Username").IsUnique();
+
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Username).HasMaxLength(200);
 
@@ -160,12 +162,17 @@ public partial class PontajContext : DbContext
         {
             entity.HasIndex(e => e.Badge, "IX_Employees_Badge");
 
+            entity.HasIndex(e => e.Username, "UX_Employees_Username")
+                .IsUnique()
+                .HasFilter("([Username] IS NOT NULL)");
+
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Badge).HasMaxLength(60);
             entity.Property(e => e.Code).HasMaxLength(60);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Pin).HasMaxLength(60);
+            entity.Property(e => e.Username).HasMaxLength(200);
         });
 
         modelBuilder.Entity<Languages>(entity =>

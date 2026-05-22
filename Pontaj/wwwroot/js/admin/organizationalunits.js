@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 path: APP_OU_SET_ACTIVE_URL,
                 body: { id: parseInt(currentOuId, 10), active: targetActive },
                 onSuccess: function () {
-                    showToast('success', targetActive ? 'Unitate activată.' : 'Unitate dezactivată.');
+                    queueToast('success', targetActive ? 'Unitate activată.' : 'Unitate dezactivată.');
                     reloadKeepingSelection(currentOuId);
                 },
                 onError: function (err) {

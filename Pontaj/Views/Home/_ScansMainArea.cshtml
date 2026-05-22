@@ -1,0 +1,89 @@
+@using Pontaj.Models.Home
+@model ScansIndexViewModel
+
+<div class="scan-content-header d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Pontaje</h4>
+    <div class="d-flex gap-2">
+        @if (!Model.ShowOtherEmployeeFilters)
+        {
+            <button type="button"
+                    class="btn btn-secondary btn-sm"
+                    id="scanFilterButton"
+                    data-bs-toggle="modal"
+                    data-bs-target="#scanFilterModal"
+                    title="Filtrează">
+                <i class="bi bi-funnel"></i>
+            </button>
+        }
+        @if (Model.CanEdit)
+        {
+            <button type="button"
+                    class="btn btn-primary btn-sm"
+                    id="scanAddButton"
+                    data-bs-toggle="modal"
+                    data-bs-target="#scanFormModal"
+                    data-mode="create"
+                    title="Adaugă pontaj">
+                <i class="bi bi-plus-lg"></i> Adaugă pontaj
+            </button>
+        }
+    </div>
+</div>
+
+@if (!Model.ShowOtherEmployeeFilters)
+{
+    <div class="scan-content-header mb-2 d-none" id="scansActiveFilters">
+        <div class="d-flex flex-column align-items-start gap-1" id="scansActiveFiltersBadge"></div>
+        <button type="button" class="btn btn-link btn-sm p-0 mt-1 align-baseline" id="scansClearFilters">
+            Șterge filtrele
+        </button>
+    </div>
+}
+
+<div class="scan-table-wrap table-responsive">
+    <table class="table table-sm table-hover align-middle" id="scansTable">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Angajat</th>
+                <th scope="col">Marca</th>
+                <th scope="col">Direcție</th>
+                <th scope="col">Moment</th>
+                <th scope="col">Stație de lucru</th>
+                <th scope="col">Unitate</th>
+                @if (Model.ShowIpColumn)
+                {
+                    <th scope="col">IP</th>
+                }
+                @if (Model.CanEdit)
+                {
+                    <th scope="col">Acțiuni</th>
+                }
+            </tr>
+        </thead>
+        <tbody id="scansTableBody">
+            <tr><td colspan="8" class="text-center text-muted fst-italic">Se încarcă...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="scan-content-footer d-flex align-items-center justify-content-between mt-2">
+    <div class="d-flex align-items-center gap-2">
+        <span class="small text-muted">Pagina</span>
+        <span class="small" id="scansPageLabel">1 / 1</span>
+        <span class="small text-muted">(<span id="scansTotalLabel">0</span> rezultate)</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <label for="scansPageSize" class="small text-muted mb-0">Pe pagină</label>
+        <select id="scansPageSize" class="form-select form-select-sm" style="width: auto;">
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+        </select>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="scansPrev" disabled>
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="scansNext" disabled>
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</div>

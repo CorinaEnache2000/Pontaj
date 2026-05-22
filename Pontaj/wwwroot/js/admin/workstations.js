@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     active: active
                 },
                 onSuccess: function () {
-                    showToast('success', 'Stație de lucru actualizată.');
+                    queueToast('success', 'Stație de lucru actualizată.');
                     reloadKeepingSelection(id);
                 },
                 onError: function (err) {
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 path: APP_WORKSTATION_SET_ACTIVE_URL,
                 body: { id: selectedWorkStation.id, active: targetActive },
                 onSuccess: function () {
-                    showToast('success', targetActive ? 'Stație activată.' : 'Stație dezactivată.');
+                    queueToast('success', targetActive ? 'Stație activată.' : 'Stație dezactivată.');
                     reloadKeepingSelection(selectedWorkStation.id);
                 },
                 onError: function (err) {
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     active: active
                 },
                 onSuccess: function (data) {
-                    showToast('success', 'Stație de lucru creată.');
+                    queueToast('success', 'Stație de lucru creată.');
                     if (data && data.id) {
                         reloadKeepingSelection(data.id);
                     } else {

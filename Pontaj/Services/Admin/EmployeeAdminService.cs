@@ -43,6 +43,7 @@ public class EmployeeAdminService : IEmployeeAdminService
                 BirthDate = e.BirthDate,
                 Badge = e.Badge,
                 Code = e.Code,
+                Username = e.Username,
                 Active = e.Active,
                 OrganizationalUnits = e.EmployeeOrganizationalUnits
                     .Select(eou => new EmployeeOrganizationalUnitItem

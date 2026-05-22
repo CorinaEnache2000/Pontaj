@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 path: APP_USER_SET_ACTIVE_URL,
                 body: { id: parseInt(currentUserId, 10), active: targetActive },
                 onSuccess: function () {
-                    showToast('success', targetActive ? 'Utilizator activat.' : 'Utilizator dezactivat.');
+                    queueToast('success', targetActive ? 'Utilizator activat.' : 'Utilizator dezactivat.');
                     reloadKeepingSelection(currentUserId);
                 },
                 onError: function (err) {

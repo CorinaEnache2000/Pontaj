@@ -1,0 +1,33 @@
+@using Pontaj.Models.Home
+@model OuTreeNode
+
+<li class="ou-node@(Model.Children.Any() ? " collapsed" : "")"
+    data-id="@Model.Id"
+    data-name="@Model.Name">
+    <div class="ou-row d-flex align-items-center">
+        @if (Model.Children.Any())
+        {
+            <button type="button" class="ou-toggle" aria-label="Extinde/restrânge">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        }
+        else
+        {
+            <span class="ou-toggle-spacer"></span>
+        }
+        <input type="checkbox"
+               class="form-check-input ou-checkbox me-1"
+               data-id="@Model.Id"
+               aria-label="Selectează @Model.Name" />
+        <span class="ou-name">@Model.Name</span>
+    </div>
+    @if (Model.Children.Any())
+    {
+        <ul class="ou-children list-unstyled">
+            @foreach (var child in Model.Children)
+            {
+                @await Html.PartialAsync("_OuTreeNode", child)
+            }
+        </ul>
+    }
+</li>

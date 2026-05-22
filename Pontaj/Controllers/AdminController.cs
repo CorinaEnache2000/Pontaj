@@ -9,7 +9,7 @@ using Pontaj.Services.Logs;
 
 namespace Pontaj.Controllers
 {
-    [Authorize(AuthenticationSchemes = AuthSchemes.JwtCookie)]
+    [Authorize(AuthenticationSchemes = AuthSchemes.JwtCookie, Roles = "ADMINISTRATOR")]
     public class AdminController : Controller
     {
         private readonly IEmployeeAdminService _employeeAdminService;

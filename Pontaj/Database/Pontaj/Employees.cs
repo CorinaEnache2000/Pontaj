@@ -21,6 +21,8 @@ public partial class Employees
 
     public string? Code { get; set; }
 
+    public string? Username { get; set; }
+
     public virtual ICollection<AppUsers> AppUsers { get; set; } = new List<AppUsers>();
 
     public virtual ICollection<EmployeeOrganizationalUnits> EmployeeOrganizationalUnits { get; set; } = new List<EmployeeOrganizationalUnits>();

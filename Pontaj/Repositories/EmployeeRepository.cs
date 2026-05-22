@@ -21,4 +21,10 @@ public class EmployeeRepository : IEmployeeRepository
             .OrderBy(eou => eou.Id)
             .Select(eou => (int?)eou.OrganizationalUnitId)
             .FirstOrDefaultAsync(ct);
+
+    public Task<int?> GetActiveIdByUsernameAsync(string username, CancellationToken ct = default) =>
+        _context.Employees
+            .Where(e => e.Active && e.Username == username)
+            .Select(e => (int?)e.Id)
+            .FirstOrDefaultAsync(ct);
 }

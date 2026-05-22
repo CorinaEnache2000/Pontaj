@@ -1,8 +1,367 @@
+@using Pontaj.Models.Home
+@model ScansIndexViewModel
 @{
-    ViewData["Title"] = "Acasă";
+    ViewData["Title"] = "Pontaje";
+    ViewData["FullWidth"] = true;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bine ai venit, @(User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name)</h1>
-    <p class="text-muted">Pontajul tău este disponibil aici. Funcționalitatea completă va fi adăugată în curând.</p>
-</div>
+<style>
+    .scan-full-height {
+        height: 80vh;
+    }
+
+    .scan-sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .scan-sidebar-chips {
+        flex-shrink: 0;
+        max-height: 8rem;
+        overflow-y: auto;
+    }
+
+    #scanOuTree {
+        flex-grow: 1;
+        overflow: auto;
+        min-height: 0;
+    }
+
+    .scan-content-col {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .scan-content-header,
+    .scan-content-footer {
+        flex-shrink: 0;
+    }
+
+    .scan-table-wrap {
+        flex: 1 1 0;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    #scanOuTree ul.ou-children {
+        margin-left: 1.25rem;
+    }
+
+    #scanOuTree .ou-row {
+        padding: 0.1rem 0;
+    }
+
+    #scanOuTree .ou-toggle {
+        width: 1.3rem;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    #scanOuTree .ou-toggle-spacer {
+        display: inline-block;
+        width: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    #scanOuTree .ou-toggle i {
+        transition: transform 0.15s ease;
+    }
+
+    #scanOuTree .ou-node:not(.collapsed) > .ou-row .ou-toggle i {
+        transform: rotate(90deg);
+    }
+
+    #scanOuTree .ou-node.collapsed > ul.ou-children {
+        display: none;
+    }
+
+    #scanOuTree .ou-name {
+        margin-left: 0.25rem;
+        user-select: none;
+        cursor: pointer;
+    }
+
+    #scanOuTree .ou-node.ou-match > .ou-row > .ou-name {
+        background-color: #fff3cd;
+        padding: 0 0.2rem;
+        border-radius: 0.2rem;
+    }
+
+    #scansTable thead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #scansTable td, #scansTable th {
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
+
+    .direction-pill {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .direction-in {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .direction-out {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    #scansActiveFilters .badge {
+        white-space: normal;
+        word-break: break-word;
+        text-align: left;
+    }
+</style>
+
+@if (!Model.IsLinked)
+{
+    <div class="alert alert-warning mt-3" role="alert">
+        Contul dumneavoastră nu este încă asociat cu un angajat. Contactați administratorul.
+    </div>
+}
+else if (Model.ShowOtherEmployeeFilters)
+{
+    <div class="container-fluid scan-full-height">
+        <div class="row scan-full-height">
+            <div class="col-md-3 bg-light border-end scan-sidebar p-2">
+                <div class="d-flex align-items-center mb-2 gap-1">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="scanOuTreeSearch"
+                           placeholder="Introduceți numele unității" />
+                    <button type="button"
+                            class="btn btn-secondary btn-sm"
+                            id="scanFilterButton"
+                            data-bs-toggle="modal"
+                            data-bs-target="#scanFilterModal"
+                            title="Filtrează">
+                        <i class="bi bi-funnel"></i>
+                    </button>
+                </div>
+
+                <div class="mb-2 d-none scan-sidebar-chips" id="scansActiveFilters">
+                    <div class="d-flex flex-column align-items-start gap-1" id="scansActiveFiltersBadge"></div>
+                    <button type="button" class="btn btn-link btn-sm p-0 mt-1 align-baseline" id="scansClearFilters">
+                        Șterge filtrele
+                    </button>
+                </div>
+
+                <div id="scanOuTree">
+                    @if (Model.OrganizationalUnitTree.Any())
+                    {
+                        <ul class="ou-root list-unstyled mb-0">
+                            @foreach (var root in Model.OrganizationalUnitTree)
+                            {
+                                @await Html.PartialAsync("_OuTreeNode", root)
+                            }
+                        </ul>
+                        <p class="text-muted fst-italic small d-none mb-0 mt-2" id="scanOuTreeNoMatch">Nicio unitate nu corespunde căutării.</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted fst-italic small mb-0">Nicio unitate organizațională disponibilă.</p>
+                    }
+                </div>
+                <select id="filterOus" multiple style="display:none;">
+                    @foreach (var o in Model.OrganizationalUnits)
+                    {
+                        <option value="@o.Id">@o.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-9 p-3 scan-content-col">
+                @await Html.PartialAsync("_ScansMainArea", Model)
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="p-2">
+        @await Html.PartialAsync("_ScansMainArea", Model)
+    </div>
+}
+
+@if (Model.IsLinked)
+{
+    <div class="modal fade" id="scanFilterModal" tabindex="-1" aria-labelledby="scanFilterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="scanFilterModalLabel">Filtrează pontajele</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+                </div>
+                <div class="modal-body">
+                    @if (Model.ShowOtherEmployeeFilters)
+                    {
+                        <div class="mb-3">
+                            <label for="filterEmployees" class="form-label">Angajat</label>
+                            <select class="form-select form-select-sm" id="filterEmployees" multiple>
+                                <option value="">Toți</option>
+                                @foreach (var e in Model.Employees)
+                                {
+                                    <option value="@e.Id">@e.DisplayName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="filterWorkStations" class="form-label">Stație de lucru</label>
+                            <select class="form-select form-select-sm" id="filterWorkStations" multiple>
+                                <option value="">Toate</option>
+                                @foreach (var w in Model.WorkStations)
+                                {
+                                    <option value="@w.Id">@w.Name</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label for="filterFrom" class="form-label">De la</label>
+                            <input type="date" class="form-control form-control-sm" id="filterFrom" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filterTo" class="form-label">Până la</label>
+                            <input type="date" class="form-control form-control-sm" id="filterTo" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="filterReset">Resetează</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="filterApply" data-bs-dismiss="modal">Filtrează</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.CanEdit)
+{
+    <div class="modal fade" id="scanFormModal" tabindex="-1" aria-labelledby="scanFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="scanFormModalLabel">Adaugă pontaj</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="formScanId" />
+                    <div class="mb-3">
+                        <label for="formEmployee" class="form-label">Angajat <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="formEmployee" required>
+                            <option value="">Selectați...</option>
+                            @foreach (var e in Model.Employees)
+                            {
+                                <option value="@e.Id">@e.DisplayName</option>
+                            }
+                        </select>
+                        <div class="form-text" id="formEmployeeReadonlyNote" style="display:none;">
+                            Angajatul nu poate fi modificat. Pentru re-atribuire ștergeți și adăugați un nou pontaj.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Direcție <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="formInOut" id="formInOutIn" value="true" checked />
+                                <label class="form-check-label" for="formInOutIn">Intrare</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="formInOut" id="formInOutOut" value="false" />
+                                <label class="form-check-label" for="formInOutOut">Ieșire</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="formMoment" class="form-label">Moment <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control form-control-sm" id="formMoment" step="1" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="formWorkStation" class="form-label">Stație de lucru</label>
+                        <select class="form-select form-select-sm" id="formWorkStation">
+                            <option value="">Niciuna</option>
+                            @foreach (var w in Model.WorkStations)
+                            {
+                                <option value="@w.Id">@w.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="formOu" class="form-label">Unitate organizațională</label>
+                        <select class="form-select form-select-sm" id="formOu">
+                            <option value="">Implicit (unitatea principală a angajatului)</option>
+                            @foreach (var o in Model.OrganizationalUnits)
+                            {
+                                <option value="@o.Id">@o.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Anulează</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="formSubmit">
+                        <span id="formSubmitSpinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                        Salvează
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="scanDeleteModal" tabindex="-1" aria-labelledby="scanDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="scanDeleteModalLabel">Șterge pontaj</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Sigur doriți să ștergeți acest pontaj? Acțiunea nu poate fi anulată.</p>
+                    <div class="bg-light border rounded p-2 small" id="scanDeleteSummary"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Anulează</button>
+                    <button type="button" class="btn btn-danger btn-sm" id="deleteConfirmButton">
+                        <span id="deleteConfirmSpinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                        Șterge
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        window.APP_SCAN_CAN_EDIT = @(Model.CanEdit.ToString().ToLowerInvariant());
+        window.APP_SCAN_SHOW_FILTERS = @(Model.ShowOtherEmployeeFilters.ToString().ToLowerInvariant());
+        window.APP_SCAN_SHOW_IP = @(Model.ShowIpColumn.ToString().ToLowerInvariant());
+        window.APP_SCAN_IS_LINKED = @(Model.IsLinked.ToString().ToLowerInvariant());
+        window.APP_SCAN_LIST_URL = '/api/scans/list';
+        window.APP_SCAN_CREATE_URL = '/api/scans/create';
+        window.APP_SCAN_UPDATE_URL = '/api/scans/update';
+        window.APP_SCAN_DELETE_URL = '/api/scans/delete';
+    </script>
+    <script src="~/js/home/index.js" asp-append-version="true"></script>
+}

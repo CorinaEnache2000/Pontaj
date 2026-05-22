@@ -51,6 +51,7 @@ builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IWorkStationRepository, WorkStationRepository>();
 builder.Services.AddScoped<IPunchRepository, PunchRepository>();
+builder.Services.AddScoped<IScanRepository, ScanRepository>();
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -84,6 +85,8 @@ builder.Services.AddScoped<IEmployeeAdminService, EmployeeAdminService>();
 builder.Services.AddScoped<IOrganizationalUnitAdminService, OrganizationalUnitAdminService>();
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddScoped<IWorkStationAdminService, WorkStationAdminService>();
+builder.Services.AddScoped<IOuHierarchyService, OuHierarchyService>();
+builder.Services.AddScoped<IScanService, ScanService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddSingleton<IActiveDirectoryService>(

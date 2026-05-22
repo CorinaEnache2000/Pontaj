@@ -3,22 +3,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontaj.Models;
 using Pontaj.Services.Login;
+using Pontaj.Services.Scan;
 
 namespace Pontaj.Controllers;
 
 [Authorize(AuthenticationSchemes = AuthSchemes.JwtCookie)]
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly IScanService _scanService;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(IScanService scanService)
     {
-        _logger = logger;
+        _scanService = scanService;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
-        return View();
+        var scope = await _scanService.ResolveScopeAsync(User, ct);
+        var vm = await _scanService.BuildIndexViewModelAsync(scope, ct);
+        return View(vm);
     }
 
     [AllowAnonymous]

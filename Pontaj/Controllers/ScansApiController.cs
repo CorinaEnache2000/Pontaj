@@ -53,6 +53,7 @@ public class ScansApiController : ControllerBase
                 id = i.Id,
                 employeeId = i.EmployeeId,
                 employeeName = $"{i.EmployeeLastName} {i.EmployeeFirstName}".Trim(),
+                mark = i.Mark,
                 badge = i.Badge,
                 inOut = i.InOut,
                 moment = i.InsertedMoment.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),

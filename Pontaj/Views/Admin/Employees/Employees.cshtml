@@ -88,6 +88,34 @@
     </div>
 </div>
 
+<div class="modal fade" id="usernameModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nume utilizator (Active Directory)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+            </div>
+            <div class="modal-body">
+                <label for="usernameInput" class="form-label">
+                    Nume utilizator AD (ex.: <code>prenume.nume</code>)
+                </label>
+                <input type="text"
+                       class="form-control"
+                       id="usernameInput"
+                       placeholder="Introduceți numele de utilizator" />
+                <div class="form-text">
+                    Lăsați gol pentru a șterge asocierea. La următoarea autentificare,
+                    contul AD cu acest nume va fi asociat automat acestui angajat.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulează</button>
+                <button type="button" class="btn btn-primary" id="saveUsernameButton">Salvează</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/admin/employees.js" asp-append-version="true"></script>
 }

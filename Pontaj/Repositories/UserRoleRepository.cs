@@ -17,6 +17,11 @@ public class UserRoleRepository : IUserRoleRepository
             .Where(x => x.UserId == userId && x.Active)
             .ToListAsync(ct);
 
+    public Task<List<UserRoles>> GetAllByUserIdAsync(int userId, CancellationToken ct = default) =>
+        _context.UserRoles
+            .Where(x => x.UserId == userId)
+            .ToListAsync(ct);
+
     public async Task AddAsync(UserRoles link, CancellationToken ct = default)
     {
         await _context.UserRoles.AddAsync(link, ct);

@@ -14,7 +14,7 @@ public class EmployeeDetail
 
     public string? Badge { get; set; }
 
-    public string? Code { get; set; }
+    public string? Mark { get; set; }
 
     public string? Username { get; set; }
 

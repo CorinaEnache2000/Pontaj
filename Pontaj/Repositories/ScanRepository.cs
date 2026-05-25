@@ -84,6 +84,7 @@ public class ScanRepository : IScanRepository
                 EmployeeId = p.EmployeeId,
                 EmployeeLastName = p.Employee.LastName,
                 EmployeeFirstName = p.Employee.FirstName,
+                Mark = p.Employee.Mark,
                 Badge = p.Badge,
                 InOut = p.InOut,
                 InsertedMoment = p.InsertedMoment,

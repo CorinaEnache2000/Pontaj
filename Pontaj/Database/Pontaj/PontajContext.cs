@@ -168,7 +168,7 @@ public partial class PontajContext : DbContext
 
             entity.Property(e => e.Active).HasDefaultValue(true);
             entity.Property(e => e.Badge).HasMaxLength(60);
-            entity.Property(e => e.Code).HasMaxLength(60);
+            entity.Property(e => e.Mark).HasMaxLength(60);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Pin).HasMaxLength(60);

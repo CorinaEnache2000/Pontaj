@@ -11,7 +11,7 @@
                     <th scope="col">Nume</th>
                     <th scope="col">Prenume</th>
                     <th scope="col">Marcă</th>
-                    <th scope="col">Cod</th>
+                    <th scope="col">Cod cartelă</th>
                     <th scope="col">PIN</th>
                     <th scope="col">Data nașterii</th>
                     <th scope="col">Utilizator</th>
@@ -25,11 +25,20 @@
                     <td>@Model.Id</td>
                     <td>@Model.LastName</td>
                     <td>@Model.FirstName</td>
+                    <td>@(string.IsNullOrWhiteSpace(Model.Mark) ? "—" : Model.Mark)</td>
                     <td>@(string.IsNullOrWhiteSpace(Model.Badge) ? "—" : Model.Badge)</td>
-                    <td>@(string.IsNullOrWhiteSpace(Model.Code) ? "—" : Model.Code)</td>
                     <td>@(string.IsNullOrWhiteSpace(Model.Pin) ? "—" : Model.Pin)</td>
                     <td>@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("dd.MM.yyyy") : "—")</td>
-                    <td>@(string.IsNullOrWhiteSpace(Model.Username) ? "—" : Model.Username)</td>
+                    <td class="text-nowrap">
+                        <span>@(string.IsNullOrWhiteSpace(Model.Username) ? "—" : Model.Username)</span>
+                        <button type="button"
+                                class="btn btn-link btn-sm p-0 ms-1 align-baseline edit-username-button"
+                                data-id="@Model.Id"
+                                data-username="@(Model.Username ?? string.Empty)"
+                                title="Editează numele de utilizator">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </td>
                     <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.OrganizationalUnitId)) : "—")</td>
                     <td>@(Model.OrganizationalUnits.Any() ? string.Join(", ", Model.OrganizationalUnits.Select(o => o.Name)) : "—")</td>
                     <td class="active-cell" style="@(Model.Active ? "color: green; font-weight: bold;" : "color: red; font-weight: bold;")">

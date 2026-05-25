@@ -10,6 +10,8 @@ public class ScanListItem
 
     public string EmployeeFirstName { get; set; } = string.Empty;
 
+    public string? Mark { get; set; }
+
     public string Badge { get; set; } = string.Empty;
 
     public bool InOut { get; set; }

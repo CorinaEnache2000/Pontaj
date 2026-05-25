@@ -42,7 +42,7 @@ public class EmployeeAdminService : IEmployeeAdminService
                 Pin = e.Pin,
                 BirthDate = e.BirthDate,
                 Badge = e.Badge,
-                Code = e.Code,
+                Mark = e.Mark,
                 Username = e.Username,
                 Active = e.Active,
                 OrganizationalUnits = e.EmployeeOrganizationalUnits
@@ -74,6 +74,63 @@ public class EmployeeAdminService : IEmployeeAdminService
         }
         entity.Active = active;
         await _context.SaveChangesAsync(ct);
+        return null;
+    }
+
+    public async Task<string?> UpdateUsernameAsync(int id, string? username, CancellationToken ct = default)
+    {
+        var entity = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id, ct);
+        if (entity == null)
+        {
+            return "Angajatul nu există.";
+        }
+
+        var normalized = string.IsNullOrWhiteSpace(username) ? null : username.Trim();
+
+        if (normalized != null)
+        {
+            var taken = await _context.Employees
+                .AnyAsync(e => e.Id != id && e.Username == normalized, ct);
+            if (taken)
+            {
+                return "Acest nume de utilizator este deja asociat altui angajat.";
+            }
+        }
+
+        entity.Username = normalized;
+
+        if (normalized != null)
+        {
+            // Make the override authoritative immediately: if the AD account has already
+            // logged in, re-point it to this employee, healing any prior (wrong) auto-link.
+            var appUser = await _context.AppUsers
+                .FirstOrDefaultAsync(u => u.Username == normalized, ct);
+            if (appUser != null && appUser.EmployeeId != id)
+            {
+                appUser.EmployeeId = id;
+            }
+        }
+        else
+        {
+            // Clearing the username removes the association: unlink any AD account linked here.
+            var linked = await _context.AppUsers
+                .Where(u => u.EmployeeId == id)
+                .ToListAsync(ct);
+            foreach (var u in linked)
+            {
+                u.EmployeeId = null;
+            }
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            return "Acest nume de utilizator este deja asociat altui angajat.";
+        }
+
         return null;
     }
 

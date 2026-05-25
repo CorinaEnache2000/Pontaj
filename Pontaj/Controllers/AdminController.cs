@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontaj.Models;
 using Pontaj.Models.Admin;
+using Pontaj.Models.Admin.Employees;
 using Pontaj.Models.Admin.WorkStations;
 using Pontaj.Services.Admin;
 using Pontaj.Services.Login;
@@ -222,6 +223,40 @@ namespace Pontaj.Controllers
                 "angajatul",
                 "angajatului",
                 ct);
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateEmployeeUsername(
+            [FromBody] UpdateEmployeeUsernameRequest request,
+            CancellationToken ct)
+        {
+            if (request == null)
+            {
+                return BadRequest(ResponseBase.Error("Cerere invalidă."));
+            }
+
+            try
+            {
+                var validationError = await _employeeAdminService.UpdateUsernameAsync(request.Id, request.Username, ct);
+                if (validationError != null)
+                {
+                    return BadRequest(ResponseBase.Error(validationError));
+                }
+
+                var cleaned = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username.Trim();
+                await TryLogAsync(
+                    "UpdateEmployeeUsername",
+                    cleaned == null
+                        ? $"Nume utilizator șters pentru angajatul Id={request.Id}."
+                        : $"Nume utilizator setat la '{cleaned}' pentru angajatul Id={request.Id}.");
+
+                return Ok(ResponseBase.Success());
+            }
+            catch (Exception ex)
+            {
+                await TryLogAsync("UpdateEmployeeUsername_Error", "Eroare la actualizarea numelui de utilizator.", ex);
+                return StatusCode(500, ResponseBase.Error("Eroare la actualizarea numelui de utilizator."));
+            }
+        }
 
         [HttpPost]
         public Task<IActionResult> SetOrganizationalUnitActive([FromBody] SetActiveRequest request, CancellationToken ct) =>

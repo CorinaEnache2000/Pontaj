@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
             to: state.activeFilters.to
         });
 
-        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted fst-italic">Se încarcă...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted fst-italic">Se încarcă...</td></tr>';
 
         apiRequest({
             method: 'POST',
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 nextBtn.disabled = state.page >= state.totalPages;
             },
             onError: function (err) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">' +
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">' +
                     escapeHtml(err && err.message ? err.message : 'Eroare la încărcare.') + '</td></tr>';
             }
         });
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderRows(items) {
         if (!items.length) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted fst-italic">Nu există pontaje pentru filtrele selectate.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted fst-italic">Nu există pontaje pentru filtrele selectate.</td></tr>';
             return;
         }
         const canEdit = !!window.APP_SCAN_CAN_EDIT;
@@ -342,7 +342,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 + ' data-ou-id="' + (it.organizationalUnitId == null ? '' : it.organizationalUnitId) + '"'
                 + ' data-ou="' + escapeAttr(it.organizationalUnit || '') + '">'
                 + '<td>' + escapeHtml(it.employeeName || '') + '</td>'
-                + '<td>' + escapeHtml(it.badge || '') + '</td>'
+                + '<td>' + escapeHtml(it.mark || '—') + '</td>'
+                + '<td>' + escapeHtml(it.badge || '—') + '</td>'
                 + '<td>' + pill + '</td>'
                 + '<td class="text-nowrap">' + formatMoment(it.moment) + '</td>'
                 + '<td>' + escapeHtml(it.workStation || '—') + '</td>'

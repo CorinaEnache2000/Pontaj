@@ -1,6 +1,7 @@
 const APP_EMPLOYEE_DETAIL_URL = '/Admin/EmployeeGeneralInfo';
 const APP_EMPLOYEE_SYNC_URL = '/Admin/SyncEmployees';
 const APP_EMPLOYEE_SET_ACTIVE_URL = '/Admin/SetEmployeeActive';
+const APP_EMPLOYEE_UPDATE_USERNAME_URL = '/Admin/UpdateEmployeeUsername';
 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('employeeSearch');
@@ -102,6 +103,57 @@ document.addEventListener('DOMContentLoaded', function () {
                 onError: function (err) {
                     showToast('error', err && err.message ? err.message : 'Eroare la modificare.');
                     toggleActiveButton.disabled = false;
+                }
+            });
+        });
+    }
+
+    const usernameModalEl = document.getElementById('usernameModal');
+    const usernameModal = usernameModalEl ? new bootstrap.Modal(usernameModalEl) : null;
+    const usernameInput = document.getElementById('usernameInput');
+    const saveUsernameButton = document.getElementById('saveUsernameButton');
+    let editingUsernameEmployeeId = null;
+
+    if (detailsContent) {
+        detailsContent.addEventListener('click', function (event) {
+            const button = event.target.closest('.edit-username-button');
+            if (!button) {
+                return;
+            }
+            editingUsernameEmployeeId = parseInt(button.getAttribute('data-id'), 10);
+            if (usernameInput) {
+                usernameInput.value = button.getAttribute('data-username') || '';
+            }
+            if (usernameModal) {
+                usernameModal.show();
+            }
+        });
+    }
+
+    if (saveUsernameButton) {
+        saveUsernameButton.addEventListener('click', function () {
+            if (!editingUsernameEmployeeId) {
+                return;
+            }
+            saveUsernameButton.disabled = true;
+
+            apiRequest({
+                method: 'POST',
+                path: APP_EMPLOYEE_UPDATE_USERNAME_URL,
+                body: {
+                    id: editingUsernameEmployeeId,
+                    username: usernameInput ? usernameInput.value : null
+                },
+                onSuccess: function () {
+                    if (usernameModal) {
+                        usernameModal.hide();
+                    }
+                    queueToast('success', 'Nume utilizator actualizat.');
+                    reloadKeepingSelection(editingUsernameEmployeeId);
+                },
+                onError: function (err) {
+                    showToast('error', err && err.message ? err.message : 'Eroare la salvare.');
+                    saveUsernameButton.disabled = false;
                 }
             });
         });

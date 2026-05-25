@@ -19,7 +19,7 @@ public partial class Employees
 
     public bool Active { get; set; }
 
-    public string? Code { get; set; }
+    public string? Mark { get; set; }
 
     public string? Username { get; set; }
 

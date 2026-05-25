@@ -11,4 +11,6 @@ public interface IEmployeeAdminService
     Task<int> SyncEmployeesAsync(CancellationToken ct = default);
 
     Task<string?> SetActiveAsync(int id, bool active, CancellationToken ct = default);
+
+    Task<string?> UpdateUsernameAsync(int id, string? username, CancellationToken ct = default);
 }

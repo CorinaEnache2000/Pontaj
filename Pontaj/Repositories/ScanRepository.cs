@@ -29,7 +29,8 @@ public class ScanRepository : IScanRepository
                 var selfEmployeeId = scope.SelfEmployeeId;
                 q = q.Where(p =>
                     (selfEmployeeId.HasValue && p.EmployeeId == selfEmployeeId.Value)
-                    || (p.OrganizationalUnitId.HasValue && allowedOuIds.Contains(p.OrganizationalUnitId.Value)));
+                    || p.Employee.EmployeeOrganizationalUnits.Any(eou =>
+                        eou.Active && allowedOuIds.Contains(eou.OrganizationalUnitId)));
             }
             else if (scope.SelfEmployeeId.HasValue)
             {
@@ -55,7 +56,8 @@ public class ScanRepository : IScanRepository
         if (request.OrganizationalUnitIds != null && request.OrganizationalUnitIds.Count > 0)
         {
             var ids = request.OrganizationalUnitIds;
-            q = q.Where(p => p.OrganizationalUnitId.HasValue && ids.Contains(p.OrganizationalUnitId.Value));
+            q = q.Where(p => p.Employee.EmployeeOrganizationalUnits.Any(eou =>
+                eou.Active && ids.Contains(eou.OrganizationalUnitId)));
         }
         if (request.From.HasValue)
         {
@@ -90,17 +92,40 @@ public class ScanRepository : IScanRepository
                 InsertedMoment = p.InsertedMoment,
                 WorkStationId = p.WorkStationId,
                 WorkStationName = p.WorkStation != null ? p.WorkStation.NameKey : null,
-                OrganizationalUnitId = p.OrganizationalUnitId,
-                OrganizationalUnitName = p.OrganizationalUnit != null
-                    ? (_context.TextResources
-                        .Where(tr => tr.ResourceKey == p.OrganizationalUnit.PublicNameKey
-                                  && tr.LanguageId == p.OrganizationalUnit.DefaultLanguageId)
-                        .Select(tr => tr.Value)
-                        .FirstOrDefault() ?? p.OrganizationalUnit.PublicNameKey)
-                    : null,
                 Ip = p.Ip
             })
             .ToListAsync(ct);
+
+        if (items.Count > 0)
+        {
+            var employeeIds = items.Select(i => i.EmployeeId).Distinct().ToList();
+
+            var ouNames = await _context.EmployeeOrganizationalUnits
+                .Where(eou => eou.Active && employeeIds.Contains(eou.EmployeeId))
+                .OrderBy(eou => eou.Id)
+                .Select(eou => new
+                {
+                    eou.EmployeeId,
+                    Name = _context.TextResources
+                        .Where(tr => tr.ResourceKey == eou.OrganizationalUnit.PublicNameKey
+                                  && tr.LanguageId == eou.OrganizationalUnit.DefaultLanguageId)
+                        .Select(tr => tr.Value)
+                        .FirstOrDefault() ?? eou.OrganizationalUnit.PublicNameKey
+                })
+                .ToListAsync(ct);
+
+            var namesByEmployee = ouNames
+                .GroupBy(x => x.EmployeeId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Name).ToList());
+
+            foreach (var item in items)
+            {
+                if (namesByEmployee.TryGetValue(item.EmployeeId, out var names))
+                {
+                    item.EmployeeOrganizationalUnitNames = names;
+                }
+            }
+        }
 
         return (items, total);
     }

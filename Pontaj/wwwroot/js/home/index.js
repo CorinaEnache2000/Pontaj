@@ -36,15 +36,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const formEmployee = document.getElementById('formEmployee');
     const formWorkStation = document.getElementById('formWorkStation');
-    const formOu = document.getElementById('formOu');
     if (formEmployee && typeof attachSelectSearch === 'function') {
         attachSelectSearch(formEmployee, 'Introduceți numele');
     }
     if (formWorkStation && typeof attachSelectSearch === 'function') {
         attachSelectSearch(formWorkStation, 'Introduceți numele');
-    }
-    if (formOu && typeof attachSelectSearch === 'function') {
-        attachSelectSearch(formOu, 'Introduceți numele');
     }
 
     const selectedOuIds = new Set();
@@ -338,9 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + ' data-inout="' + (it.inOut ? '1' : '0') + '"'
                 + ' data-moment="' + escapeAttr(it.moment || '') + '"'
                 + ' data-workstation-id="' + (it.workStationId == null ? '' : it.workStationId) + '"'
-                + ' data-workstation="' + escapeAttr(it.workStation || '') + '"'
-                + ' data-ou-id="' + (it.organizationalUnitId == null ? '' : it.organizationalUnitId) + '"'
-                + ' data-ou="' + escapeAttr(it.organizationalUnit || '') + '">'
+                + ' data-workstation="' + escapeAttr(it.workStation || '') + '">'
                 + '<td>' + escapeHtml(it.employeeName || '') + '</td>'
                 + '<td>' + escapeHtml(it.mark || '—') + '</td>'
                 + '<td>' + escapeHtml(it.badge || '—') + '</td>'
@@ -498,7 +492,6 @@ document.addEventListener('DOMContentLoaded', function () {
             scanIdInput.value = '';
             setSelectValue(formEmployee, '');
             setSelectValue(formWorkStation, '');
-            setSelectValue(formOu, '');
             formEmployee.disabled = false;
             if (formEmployeeNote) { formEmployeeNote.style.display = 'none'; }
             document.getElementById('formInOutIn').checked = true;
@@ -527,7 +520,6 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('formInOutOut').checked = row.dataset.inout !== '1';
             formMomentInput.value = momentToInput(row.dataset.moment);
             setSelectValue(formWorkStation, row.dataset.workstationId || '');
-            setSelectValue(formOu, row.dataset.ouId || '');
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
 
@@ -548,16 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const inOut = document.getElementById('formInOutIn').checked;
             const wsValue = formWorkStation.value;
-            const ouValue = formOu.value;
             const id = scanIdInput.value;
-
-            if (ouValue !== '' && ouNameById.size > 0) {
-                const ouNum = parseInt(ouValue, 10);
-                if (isNaN(ouNum) || !ouNameById.has(ouNum)) {
-                    showToast('error', 'Unitatea organizațională selectată nu este în aria dumneavoastră.');
-                    return;
-                }
-            }
 
             formSpinner.classList.remove('d-none');
             formSubmitBtn.disabled = true;
@@ -575,8 +558,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         id: parseInt(id, 10),
                         inOut: inOut,
                         moment: moment,
-                        workStationId: wsValue ? parseInt(wsValue, 10) : null,
-                        organizationalUnitId: ouValue ? parseInt(ouValue, 10) : null
+                        workStationId: wsValue ? parseInt(wsValue, 10) : null
                     },
                     onSuccess: function () {
                         restore();
@@ -603,8 +585,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         employeeId: parseInt(empValue, 10),
                         inOut: inOut,
                         moment: moment,
-                        workStationId: wsValue ? parseInt(wsValue, 10) : null,
-                        organizationalUnitId: ouValue ? parseInt(ouValue, 10) : null
+                        workStationId: wsValue ? parseInt(wsValue, 10) : null
                     },
                     onSuccess: function () {
                         restore();

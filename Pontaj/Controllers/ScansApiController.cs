@@ -59,8 +59,7 @@ public class ScansApiController : ControllerBase
                 moment = i.InsertedMoment.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
                 workStationId = i.WorkStationId,
                 workStation = i.WorkStationName,
-                organizationalUnitId = i.OrganizationalUnitId,
-                organizationalUnit = i.OrganizationalUnitName,
+                organizationalUnit = string.Join(", ", i.EmployeeOrganizationalUnitNames),
                 ip = i.Ip
             }).ToList();
 

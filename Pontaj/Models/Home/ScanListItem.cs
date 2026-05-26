@@ -22,9 +22,7 @@ public class ScanListItem
 
     public string? WorkStationName { get; set; }
 
-    public int? OrganizationalUnitId { get; set; }
-
-    public string? OrganizationalUnitName { get; set; }
+    public List<string> EmployeeOrganizationalUnitNames { get; set; } = new();
 
     public string? Ip { get; set; }
 }

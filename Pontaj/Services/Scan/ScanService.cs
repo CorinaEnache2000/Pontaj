@@ -124,14 +124,8 @@ public class ScanService : IScanService
             })
             .ToListAsync(ct);
 
-        var workStationQuery = _context.WorkStations.Where(w => w.Active);
-        if (!scope.IsAdmin && scope.AllowedOuIds != null)
-        {
-            var allowed = scope.AllowedOuIds;
-            workStationQuery = workStationQuery.Where(w => allowed.Contains(w.OrganizationalUnitId));
-        }
-
-        vm.WorkStations = await workStationQuery
+        vm.WorkStations = await _context.WorkStations
+            .Where(w => w.Active)
             .OrderBy(w => w.NameKey)
             .Select(w => new WorkStationOption
             {
@@ -241,22 +235,15 @@ public class ScanService : IScanService
             return ("Angajatul nu are marca completată.", null);
         }
 
+        if (!await IsEmployeeInScopeAsync(employee.Id, scope, ct))
+        {
+            return ("Acest angajat este în afara ariei dumneavoastră.", null);
+        }
+
         int? targetOuId = request.OrganizationalUnitId;
         if (!targetOuId.HasValue)
         {
             targetOuId = await _employeeRepository.GetPrimaryActiveOrganizationalUnitIdAsync(employee.Id, ct);
-        }
-
-        if (!scope.IsAdmin)
-        {
-            if (scope.AllowedOuIds == null)
-            {
-                return ("Nu aveți drept de modificare.", null);
-            }
-            if (!targetOuId.HasValue || !scope.AllowedOuIds.Contains(targetOuId.Value))
-            {
-                return ("Acest pontaj este în afara ariei dumneavoastră.", null);
-            }
         }
 
         if (request.WorkStationId.HasValue)
@@ -329,7 +316,7 @@ public class ScanService : IScanService
             return ("Pontajul nu există.", null);
         }
 
-        if (!IsTargetInScope(punch.EmployeeId, punch.OrganizationalUnitId, scope))
+        if (!await IsEmployeeInScopeAsync(punch.EmployeeId, scope, ct))
         {
             return ("Acest pontaj este în afara ariei dumneavoastră.", null);
         }
@@ -338,18 +325,6 @@ public class ScanService : IScanService
         if (!targetOuId.HasValue)
         {
             targetOuId = await _employeeRepository.GetPrimaryActiveOrganizationalUnitIdAsync(punch.EmployeeId, ct);
-        }
-
-        if (!scope.IsAdmin)
-        {
-            if (scope.AllowedOuIds == null)
-            {
-                return ("Nu aveți drept de modificare.", null);
-            }
-            if (!targetOuId.HasValue || !scope.AllowedOuIds.Contains(targetOuId.Value))
-            {
-                return ("Acest pontaj este în afara ariei dumneavoastră.", null);
-            }
         }
 
         if (request.WorkStationId.HasValue)
@@ -412,7 +387,7 @@ public class ScanService : IScanService
             return "Pontajul nu există.";
         }
 
-        if (!IsTargetInScope(punch.EmployeeId, punch.OrganizationalUnitId, scope))
+        if (!await IsEmployeeInScopeAsync(punch.EmployeeId, scope, ct))
         {
             return "Acest pontaj este în afara ariei dumneavoastră.";
         }
@@ -437,21 +412,25 @@ public class ScanService : IScanService
         return null;
     }
 
-    private static bool IsTargetInScope(int employeeId, int? organizationalUnitId, ScanScope scope)
+    private async Task<bool> IsEmployeeInScopeAsync(int employeeId, ScanScope scope, CancellationToken ct)
     {
         if (scope.IsAdmin)
         {
             return true;
         }
-        if (scope.AllowedOuIds == null)
-        {
-            return false;
-        }
         if (scope.SelfEmployeeId.HasValue && scope.SelfEmployeeId.Value == employeeId)
         {
             return true;
         }
-        return organizationalUnitId.HasValue && scope.AllowedOuIds.Contains(organizationalUnitId.Value);
+        if (scope.AllowedOuIds == null || scope.AllowedOuIds.Count == 0)
+        {
+            return false;
+        }
+        var allowed = scope.AllowedOuIds;
+        return await _context.EmployeeOrganizationalUnits
+            .AnyAsync(eou => eou.EmployeeId == employeeId
+                          && eou.Active
+                          && allowed.Contains(eou.OrganizationalUnitId), ct);
     }
 
     private static string Snapshot(Punches p)

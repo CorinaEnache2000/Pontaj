@@ -79,7 +79,12 @@ public class ScanController : ControllerBase
 
             int? organizationalUnitId = workStation?.OrganizationalUnitId ?? employeeOuId;
 
-            var now = DateTime.Now;
+            // Prefer the real swipe moment sent by the client (UTC on the
+            // wire, converted to server-local here). A swipe parked in the
+            // client's durable queue while this server was down would
+            // otherwise be stamped with the much-later replay time. Fall back
+            // to the current moment when the client did not send one.
+            var now = request?.SwipedAt?.LocalDateTime ?? DateTime.Now;
             var today = DateOnly.FromDateTime(now);
 
             var punch = new Punches

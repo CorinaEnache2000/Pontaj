@@ -307,16 +307,6 @@ else
                             }
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="formOu" class="form-label">Unitate organizațională</label>
-                        <select class="form-select form-select-sm" id="formOu">
-                            <option value="">Implicit (unitatea principală a angajatului)</option>
-                            @foreach (var o in Model.OrganizationalUnits)
-                            {
-                                <option value="@o.Id">@o.Name</option>
-                            }
-                        </select>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Anulează</button>

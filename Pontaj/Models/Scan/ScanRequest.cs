@@ -1,3 +1,3 @@
 namespace Pontaj.Models.Scan;
 
-public record ScanRequest(string? Badge, string? Hostname);
+public record ScanRequest(string? Badge, string? Hostname, DateTimeOffset? SwipedAt = null);

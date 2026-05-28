@@ -77,6 +77,17 @@ public class UserService : IUserService
 
         if (!employeeId.HasValue)
         {
+            try
+            {
+                await _logger.LogAsync(
+                    "User_AutoLink_NoMatch",
+                    $"Utilizatorul '{username}' nu a putut fi asociat automat cu un angajat.",
+                    null,
+                    username);
+            }
+            catch
+            {
+            }
             return;
         }
 

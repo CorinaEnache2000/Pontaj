@@ -1,5 +1,4 @@
 const APP_TOKEN_KEY = 'sessionToken';
-const APP_SESSION_EXPIRED_FLAG = 'isSessionExpired';
 const APP_LOGIN_URL = '/Account/Login';
 const APP_REQUEST_TIMEOUT_SECONDS = 30;
 const APP_COOKIE_ATTRS = '; Path=/; SameSite=Strict; Secure';
@@ -189,7 +188,6 @@ function dispatchError(err, onError) {
 
 function handleSessionExpired() {
     clearSessionToken();
-    sessionStorage.setItem(APP_SESSION_EXPIRED_FLAG, '1');
     if (window.location.pathname.toLowerCase() !== APP_LOGIN_URL.toLowerCase()) {
         window.location.href = APP_LOGIN_URL;
     }
@@ -219,12 +217,4 @@ function getAuthToken() {
 
 function clearAuthToken() {
     clearSessionToken();
-}
-
-function consumeSessionExpiredFlag() {
-    const flag = sessionStorage.getItem(APP_SESSION_EXPIRED_FLAG);
-    if (flag) {
-        sessionStorage.removeItem(APP_SESSION_EXPIRED_FLAG);
-    }
-    return flag === '1';
 }

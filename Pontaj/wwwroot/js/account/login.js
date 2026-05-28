@@ -1,17 +1,4 @@
-const loginParams = new URLSearchParams(window.location.search);
-const expiredFromQuery = loginParams.get('expired') === '1';
-
-if (consumeSessionExpiredFlag() || expiredFromQuery) {
-    document.getElementById('session-expired-alert').classList.remove('d-none');
-}
-
-if (expiredFromQuery) {
-    loginParams.delete('expired');
-    const newSearch = loginParams.toString();
-    const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
-    window.history.replaceState({}, document.title, newUrl);
-}
-
+const unlinkedAlert = document.getElementById('unlinked-alert');
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const loginSubmitBtn = document.getElementById('login-submit');
@@ -37,6 +24,7 @@ function tryLogin() {
 
     loginSubmitBtn.disabled = true;
     loginSpinner.classList.remove('d-none');
+    unlinkedAlert.classList.add('d-none');
 
     apiRequest({
         method: 'POST',
@@ -49,9 +37,14 @@ function tryLogin() {
         onError: function (err) {
             loginSubmitBtn.disabled = false;
             loginSpinner.classList.add('d-none');
-            showToast('error', err.message || 'Autentificarea a eșuat.');
             passwordInput.value = '';
-            passwordInput.focus();
+            if (err && err.data && err.data.code === 'UNLINKED') {
+                unlinkedAlert.classList.remove('d-none');
+                usernameInput.focus();
+            } else {
+                showToast('error', err.message || 'Autentificarea a eșuat.');
+                passwordInput.focus();
+            }
         }
     });
 }

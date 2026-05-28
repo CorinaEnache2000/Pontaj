@@ -68,6 +68,17 @@ public class AccountController : ControllerBase
             }
 
             var dbUser = await _userService.GetOrCreateUserAsync(request.Username, ct);
+
+            var isAdmin = roles.Any(r => r.Name == "ADMINISTRATOR");
+            if (!dbUser.EmployeeId.HasValue && !isAdmin)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    ResponseBase.Error(
+                        "Contul dumneavoastră nu a putut fi asociat. Vă rugăm contactați echipa IT.",
+                        new { code = "UNLINKED" }));
+            }
+
             await _userService.SyncUserRolesAsync(dbUser.Id, roles, ct);
 
             var token = _tokenService.CreateToken(dbUser, roles, adUser.DisplayName);
